@@ -1,42 +1,15 @@
-# hy-push-state
+# shy-img
 
-[![npm version](https://badge.fury.io/js/hy-push-state.svg)](https://badge.fury.io/js/hy-push-state)
-
-**hy-push-state** is a web component that lets you turn web pages into web apps.
-The component dynamically loads new content (formerly known as "ajax") and inserts it into the current page,
-without causing Flash of White, Flash of Unstyled Content, etc.
-
-> Turn web pages into web apps.
-{:.lead}
-
-**hy-push-state** is similar to [pjax] and [smoothState], but offers a more advanced pre-fetching logic and
-gives more control over timings to enable custom page transition animations.
-
-**hy-push-state** can be used in a variety of ways:
-* As **Vanilla** JavaScript class
-* As **jQuery** plugin
-* As **WebComponent**, both as *ES6 Module* and *HTML Import*
-* Possibly as part of your own component hierarchy via [ES6 Mixin][esmixins].
-
-**hy-drawer** is used by hundreds of sites as part of the [Hydejack]{:.external} Jekyll theme.
-
-**NOTE**: The current version is a pre-release. The public API may still change in important ways.
-{:.message}
-
-[pjax]: https://github.com/defunkt/jquery-pjax
-[smoothstate]: https://github.com/miguel-perez/smoothState.js
-[esmixins]: http://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/
-[rxjs]: https://github.com/ReactiveX/rxjs
-[hydejack]: https://qwtel.com/hydejack/
+[![npm version](https://badge.fury.io/js/shy-img.svg)](https://badge.fury.io/js/shy-img)
 
 <!--more-->
 
 ## Example
 
-* [Mixin Example](https://qwtel.com/hy-push-state/example/mixin/){:.external}
-* [Vanilla JS Example](https://qwtel.com/hy-push-state/example/vanilla/){:.external}
-* [jQuery Example](https://qwtel.com/hy-push-state/example/jquery/){:.external}
-* [WebComponent Example](https://qwtel.com/hy-push-state/example/webcomponent/){:.external}
+* [Mixin Example](https://qwtel.com/shy-img/example/mixin/){:.external}
+* [Vanilla JS Example](https://qwtel.com/shy-img/example/vanilla/){:.external}
+* [jQuery Example](https://qwtel.com/shy-img/example/jquery/){:.external}
+* [WebComponent Example](https://qwtel.com/shy-img/example/webcomponent/){:.external}
 
 
 ## License
@@ -49,14 +22,14 @@ gives more control over timings to enable custom page transition animations.
 | | [**Buy**][bp]{:.gumroad-button} | [**Buy**][bs]{:.gumroad-button} | [**Buy**][be]{:.gumroad-button} |
 {:.stretch-table}
 
-Unless you've obtained one of the licenses above, **hy-push-state** must be used in accordance with the [GPL-3.0](LICENSE.md) license.
+Unless you've obtained one of the licenses above, **shy-img** must be used in accordance with the [GPL-3.0](LICENSE.md) license.
 
 [pl]: licenses/personal.md
 [sl]: licenses/startup.md
 [el]: licenses/enterprise.md
-[bp]: https://gumroad.com/l/hy-push-state-personal
-[bs]: https://gumroad.com/l/hy-push-state-startup
-[be]: https://gumroad.com/l/hy-push-state-enterprise
+[bp]: https://gumroad.com/l/shy-img-personal
+[bs]: https://gumroad.com/l/shy-img-startup
+[be]: https://gumroad.com/l/shy-img-enterprise
 
 
 ## Documentation
@@ -66,10 +39,10 @@ Unless you've obtained one of the licenses above, **hy-push-state** must be used
 * [Events](doc/events.md){:.flip-title}
 
 ### Usage
-The most straight-forward way to use **hy-push-state** is by using the vanilla JS version and load it from a CDN:
+The most straight-forward way to use **shy-img** is by using the vanilla JS version and load it from a CDN:
 
 ~~~html
-<script src="https://unpkg.com/hy-push-state/dist/vanilla/hy-push-state.min.js"></script>
+<script src="https://unpkg.com/shy-img/dist/vanilla/shy-img.min.js"></script>
 ~~~
 
 ~~~html
