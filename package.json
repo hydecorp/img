@@ -1,0 +1,106 @@
+{
+  "name": "shy-img",
+  "version": "1.0.0-pre.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "clean": "rm -rf dist lib doc/source",
+    "test": "eslint src webpack.config.js",
+    "format": "prettier-eslint --write \"src/**/*.js\"",
+    "build": "npm run build:dev & npm run build:prod & npm run build:lib & npm run build:doc & wait",
+    "build:lib": "babel src --out-dir lib",
+    "build:prod": "webpack --env prod --display-optimization-bailout",
+    "build:dev": "webpack --env dev --display-optimization-bailout",
+    "build:doc": ".scripts/gen-doc.js & .scripts/gen-readme.js & wait",
+    "watch": "npm run watch:src & npm run watch:doc",
+    "watch:src": "webpack --progress --colors --watch --env dev",
+    "watch:doc": "npm run build:doc && onchange 'src/**/*.js' -- npm run build:doc '{{changed}}'",
+    "serve": "http-server -s -p $npm_package_config_port",
+    "dev": "npm run watch & npm run serve",
+    "prepublishOnly": "npm run test && npm run clean && npm run build",
+    "version": "npm run format && npm run build:doc && git add ."
+  },
+  "config": {
+    "port": "8082"
+  },
+  "author": "Florian Klampfer <mail@qwtel.com> (https://qwtel.com/)",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.6.1",
+    "babelify": "^8.0.0",
+    "browserify-css": "^0.14.0",
+    "camelcase": "^4.1.0",
+    "docco": "0.7.0",
+    "envify": "^4.1.0",
+    "eslint": "^4.18.2",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.7.0",
+    "file-loader": "^1.1.11",
+    "html-webpack-plugin": "^2.30.1",
+    "onchange": "^3.3.0",
+    "prettier-eslint-cli": "^4.7.1",
+    "raw-loader": "^0.5.1",
+    "underscore-template-loader": "^1.0.0",
+    "webpack": "3.11.0",
+    "webpack-merge": "^4.1.2",
+    "yargs": "^11.1.0"
+  },
+  "dependencies": {
+    "hy-component": "^1.0.0-pre.4",
+    "rxjs": "^5.5.7"
+  },
+  "optionalDependencies": {
+    "jquery": "^3.3.1"
+  },
+  "directories": {
+    "lib": "./lib",
+    "doc": "./doc",
+    "example": "./example"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qwtel/shy-img.git"
+  },
+  "bugs": {
+    "url": "https://github.com/qwtel/shy-img/issues"
+  },
+  "homepage": "https://qwtel.com/shy-img/",
+  "babel": {
+    "presets": [
+      "env"
+    ],
+    "only": [
+      "./src",
+      "rxjs",
+      "hy-component"
+    ]
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "env"
+          ],
+          "only": [
+            "./src",
+            "rxjs",
+            "hy-component"
+          ]
+        }
+      ],
+      [
+        "envify",
+        {
+          "DEBUG": false
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+- node
+deploy:
+  provider: npm
+  email: mail@qwtel.com
+  on:
+    tags: true
+    repo: qwtel/shy-img
+  skip_cleanup: true

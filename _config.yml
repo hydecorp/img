@@ -1,0 +1,95 @@
+title: shy-img
+email: mail@qwtel.com
+
+# description: >
+baseurl: /shy-img
+url: https://qwtel.com
+
+author:
+  email: mail@qwtel.com
+  social:
+    github: https://github.com/qwtel/shy-img
+    npm: https://www.npmjs.com/package/shy-img
+    download: https://github.com/qwtel/shy-img/releases
+
+copyright: © 2018 Florian Klampfer
+
+permalink: pretty
+
+google_analytics: UA-84025722-4
+
+accent_color: '#4fb1ba'
+accent_image:
+  background: 'linear-gradient(to bottom,#193747 0%,#233e4c 30%,#3c929e 50%,#d5d5d4 70%,#cdccc8 100%)'
+  overlay:    true
+
+# Build settings
+markdown: kramdown
+
+plugins:
+  - jekyll-default-layout
+  - jekyll-optional-front-matter
+  - jekyll-readme-index
+  - jekyll-relative-links
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+  - jekyll-titles-from-headings
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - package.json
+  - package-lock.json
+  - webpack.config.js
+  - src
+  - scripts
+include:
+  - LICENSE.md
+
+remote_theme: qwtel/hydejack@gem-7.5.0
+
+hydejack:
+  cookies_banner: true
+  no_mark_external: true
+
+defaults:
+  - scope:
+      path: doc/options.md
+    values:
+      menu: true
+      order: 1
+  - scope:
+      path: doc/methods.md
+    values:
+      menu: true
+      order: 2
+  - scope:
+      path: doc/events.md
+    values:
+      menu: true
+      order: 3
+
+titles_from_headings:
+  strip_title: true
+  collections: true
+
+relative_links:
+  collections: true
+
+optional_front_matter:
+  remove_originals: true
+
+readme_index:
+  remove_originals: true
+
+data_social:
+  github:
+    name: GitHub
+    icon: icon-github
+  npm:
+    name: npm
+    icon: icon-npm
+  download:
+    name: Download
+    icon: icon-box-add
