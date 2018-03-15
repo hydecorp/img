@@ -6,10 +6,10 @@
 
 ## Example
 
-* [Mixin Example](https://qwtel.com/shy-img/example/mixin/){:.external}
-* [Vanilla JS Example](https://qwtel.com/shy-img/example/vanilla/){:.external}
-* [jQuery Example](https://qwtel.com/shy-img/example/jquery/){:.external}
-* [WebComponent Example](https://qwtel.com/shy-img/example/webcomponent/){:.external}
+* [Mixin Example](https://qwtel.com/hy-push-state/example/mixin/){:.external}
+* [Vanilla JS Example](https://qwtel.com/hy-push-state/example/vanilla/){:.external}
+* [jQuery Example](https://qwtel.com/hy-push-state/example/jquery/){:.external}
+* [WebComponent Example](https://qwtel.com/hy-push-state/example/webcomponent/){:.external}
 
 
 ## License
@@ -22,14 +22,14 @@
 | | [**Buy**][bp]{:.gumroad-button} | [**Buy**][bs]{:.gumroad-button} | [**Buy**][be]{:.gumroad-button} |
 {:.stretch-table}
 
-Unless you've obtained one of the licenses above, **shy-img** must be used in accordance with the [GPL-3.0](LICENSE.md) license.
+Unless you've obtained one of the licenses above, **hy-push-state** must be used in accordance with the [GPL-3.0](LICENSE.md) license.
 
 [pl]: licenses/personal.md
 [sl]: licenses/startup.md
 [el]: licenses/enterprise.md
-[bp]: https://gumroad.com/l/shy-img-personal
-[bs]: https://gumroad.com/l/shy-img-startup
-[be]: https://gumroad.com/l/shy-img-enterprise
+[bp]: https://gumroad.com/l/hy-push-state-personal
+[bs]: https://gumroad.com/l/hy-push-state-startup
+[be]: https://gumroad.com/l/hy-push-state-enterprise
 
 
 ## Documentation
@@ -39,10 +39,10 @@ Unless you've obtained one of the licenses above, **shy-img** must be used in ac
 * [Events](doc/events.md){:.flip-title}
 
 ### Usage
-The most straight-forward way to use **shy-img** is by using the vanilla JS version and load it from a CDN:
+The most straight-forward way to use **hy-push-state** is by using the vanilla JS version and load it from a CDN:
 
 ~~~html
-<script src="https://unpkg.com/shy-img/dist/vanilla/shy-img.min.js"></script>
+<script src="https://unpkg.com/hy-push-state/dist/vanilla/hy-push-state.min.js"></script>
 ~~~
 
 ~~~html

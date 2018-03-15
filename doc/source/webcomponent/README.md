@@ -20,7 +20,7 @@ import 'core-js/fn/array/from';
 ```js
 
 import { customElementMixin, CustomElement, CUSTOM_ELEMENT_FEATURE_TESTS, Set }
-  from 'hy-component/esm/custom-element';
+  from 'hy-component/src/custom-element';
 
 import { pushStateMixin, MIXIN_FEATURE_TESTS } from '../mixin';
 

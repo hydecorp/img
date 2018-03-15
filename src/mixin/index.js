@@ -14,210 +14,101 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// ## Overview
-// This component is written in [RxJS] and reading its code requires some basic understanding
-// of how RxJS works. It may also serve as an example of how to use RxJS.
-//
-// Other than RxJS, you should be familiar with [ES6 Mixin][esmixins],
-// which is a clever way of using the ES6 class syntax to achieve inheritance-based mixins.
-// The mixin in the main export of this file.
-
-// ## Imports
-// Including the patches for ES6+ functions, but
-// there is a -lite version of the component that comes without these.
-// import 'core-js/fn/array/for-each';
-// import 'core-js/fn/array/from';
-// import 'core-js/fn/function/bind';
-// import 'core-js/fn/object/assign';
-
 // Importing the hy-compontent base libary,
 // which helps with making multiple versions of the component (Vanilla JS, WebComponent, etc...).
 import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from 'hy-component/src/component';
-import { array, bool, number, regex, string } from 'hy-component/src/types';
+import { arrayOf, string, number } from 'hy-component/src/types';
 
-import { Subject } from 'rxjs/_esm5/Subject';
-import { takeUntil } from 'rxjs/_esm5/operators/takeUntil';
-
-// Partial polyfill of the URL class. Only provides the most basic funtionality of `URL`,
-// but sufficient for this compoennt.
-import { URL } from '../url';
-
-import { INIT, HINT, PUSH, POP } from './constants';
-import { getTitle, getReplaceElements } from './update';
-import { updateHistoryState, saveScrollHistoryState } from './history';
-import { restoreScrollPostion } from './scrolling';
-import { onLoad } from './events';
-import { setupObservables } from './setup';
-
-export { INIT, HINT, PUSH, POP };
-
-// ## Constants
-// A set of [Modernizr] tests that are required to run this component.
-// These are the bare-minimum requirements, more ad-hoc features tests for optional behavior
-// is part of the code below.
+// A set of [Modernizr] tests that are required for this component to work.
 export const MIXIN_FEATURE_TESTS = new Set([
   ...COMPONENT_FEATURE_TESTS,
-  'documentfragment',
-  'eventlistener',
-  'history',
-  'promises',
+  // 'eventlistener',
   'queryselector',
-  'requestanimationframe',
+  // 'requestanimationframe',
+  // 'classlist',
+  // 'opacity',
+  // 'csstransforms',
+  // 'csspointerevents',
 ]);
 
-export { Set };
+export const imageMixin = C =>
+  class extends componentMixin(C) {
+    static get componentName() {
+      return 'hy-img';
+    }
 
-// Patching the document fragment's `getElementById` function, which is
-// not implemented in all browsers, even some modern ones.
-DocumentFragment.prototype.getElementById = DocumentFragment.prototype.getElementById ||
-  function getElementById(id) { return this.querySelector(`#${id}`); };
-
-
-// ## Push state mixin
-export function pushStateMixin(C) {
-  // TODO: see ES6 mixins...
-  return class extends componentMixin(C) {
-    // The name of the component (required by hy-component)
-    static get componentName() { return 'hy-push-state'; }
-
-    // ### Options
-    // The default values (and types) of the configuration options (required by hy-component)
-    // See [Options](../../options.md) for usage information.
     static get defaults() {
       return {
-        replaceIds: [],
-        linkSelector: 'a[href]:not(.no-push-state)',
-        scrollRestoration: false,
-        duration: 0,
-        hrefRegex: null,
-        scriptSelector: null,
-        /* prefetch: true, */
-        /* repeatDelay: 500, */
+        root: null,
+        rootMargin: '0px',
+        threshold: [0],
       };
     }
 
     static get types() {
       return {
-        replaceIds: array,
-        linkSelector: string,
-        scrollRestoration: bool,
-        duration: number,
-        hrefRegex: regex,
-        scriptSelector: string,
-        /* prefetch: bool, */
-        /* repeatDelay: number, */
+        root: string,
+        rootMargin: string,
+        threshold: arrayOf(number),
       };
     }
 
+    // Side effects of changing configuration options (if any).
+    // Mostly we just put the value on an observable and deal with it from there.
     static get sideEffects() {
-      return {
-        linkSelector(x) { this.linkSelector$.next(x); },
-        scrollRestoration(x) { this.scrollRestoration$.next(x); },
-      };
+      return {};
     }
 
     // ### Setup
+    // Overriding the setup function.
     setupComponent(el, props) {
       super.setupComponent(el, props);
-
-      this.saveScrollHistoryState = saveScrollHistoryState.bind(this);
-
-      this.linkSelector$ = new Subject();
-      this.scrollRestoration$ = new Subject();
-      this.reload$ = new Subject();
-      this.teardown$ = new Subject();
     }
 
-    // This component has no shadow DOM, so we just return the element.
-    setupShadowDOM(el) { return el; }
-
-    // Overriding the setup function.
+    // Calling the [setup observables function](./setup.md) function.
     connectComponent() {
-      super.connectComponent();
+      if ('IntersectionObserver' in window) {
+        this.intersectionObserver = new IntersectionObserver(
+          (entries) => {
+            // console.log(entries.length);
+            entries.forEach((entry) => {
+              if (entry.isIntersecting && !this.done) {
+                this.loadImage();
+              }
+            });
+          },
+          {
+            root: this.root,
+            rootMargin: this.rootMargin,
+            threshold: this.threshold,
+          },
+        );
 
-      if (process.env.DEBUG && !this.replaceIds && !this.el.id) {
-        console.warn("hy-push-state needs a 'replace-ids' or 'id' attribute.");
+        this.intersectionObserver.observe(this.el);
+      } else {
+        // Just load image
+        this.loadImage();
       }
 
-      // Setting up scroll restoration
-      if ('scrollRestoration' in window.history) {
-        const orig = window.history.scrollRestoration;
-
-        this.scrollRestoration$
-          .pipe(takeUntil(this.teardown$))
-          .subscribe((scrollRestoration) => {
-            window.history.scrollRestoration = scrollRestoration ? 'manual' : orig;
-          });
-      }
-
-      // If restore the last scroll position, if any.
-      restoreScrollPostion.call(this);
-
-      // Remember the current scroll position (for F5/reloads).
-      window.addEventListener('beforeunload', this.saveScrollHistoryState);
-
-      // Calling the [setup observables function](./setup.md) function.
-      setupObservables.call(this);
-
-      // Setting the initial `history.state`.
-      const url = new URL(window.location);
-      updateHistoryState.call(this, {
-        type: INIT,
-        replace: true,
-        url,
-      });
-
-      // After all this is done, we can fire the one-time `init` event...
+      // Firing an event to let the outside world know the drawer is ready.
       this.fireEvent('init');
+    }
 
-      // ...and our custom `load` event, which gets fired on every page change.
-      // We provide similar data as subsequent `load` events,
-      // however we can't provide an `anchor` or `event`,
-      // since this `load` event wasn't caused by a user interaction.
-      onLoad.call(this, {
-        type: INIT,
-        title: getTitle.call(this, document),
-        replaceEls: getReplaceElements.call(this, document),
-        url,
-        cacheNr: this.cacheNr,
-      });
+    loadImage() {
+      const noscript = this.el.querySelector('noscript');
+      const temp = document.createElement('div');
+      temp.innerHTML = noscript.textContent;
+      const cn = Array.from(temp.childNodes);
+      this.fireEvent('asdf', { detail: cn });
+      cn.forEach(node => this.el.appendChild(node));
+      this.done = true;
     }
 
     disconnectComponent() {
-      window.removeEventListener('beforeunload', this.saveScrollHistoryState);
-      this.teardown$.next({});
+      // this.teardown$.next({});
     }
 
-    // ### Methods
-    // Public methods of this component. See [Methods](../../methods.md) for more.
-    assign(url) {
-      this.reload$.next({
-        type: PUSH,
-        url: new URL(url, window.location),
-        cacheNr: ++this.cacheNr, // eslint-disable-line no-plusplus
-      });
-    }
-
-    reload() {
-      this.reload$.next({
-        type: PUSH,
-        url: new URL(window.location.href),
-        cacheNr: ++this.cacheNr, // eslint-disable-line no-plusplus
-        replace: true,
-      });
-    }
-
-    replace(url) {
-      this.reload$.next({
-        type: PUSH,
-        url: new URL(url, window.location),
-        cacheNr: ++this.cacheNr, // eslint-disable-line no-plusplus
-        replace: true,
-      });
+    adoptComponent() {
+      // this.document$.next(document);
     }
   };
-}
-
-// [rxjs]: https://github.com/ReactiveX/rxjs
-// [esmixins]: http://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/
-// [modernizr]: https://modernizr.com/
