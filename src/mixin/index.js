@@ -17,7 +17,7 @@
 // Importing the hy-compontent base libary,
 // which helps with making multiple versions of the component (Vanilla JS, WebComponent, etc...).
 import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from 'hy-component/src/component';
-import { arrayOf, string, number } from 'hy-component/src/types';
+import { arrayOf, number, string } from 'hy-component/src/types';
 
 // A set of [Modernizr] tests that are required for this component to work.
 export const MIXIN_FEATURE_TESTS = new Set([
@@ -31,33 +31,43 @@ export const MIXIN_FEATURE_TESTS = new Set([
   // 'csspointerevents',
 ]);
 
+/*
+function callback(entries, observer) {
+  console.log(entries[0]);
+  // console.log(entries, observer);
+}
+*/
+
 export const imageMixin = C =>
   class extends componentMixin(C) {
     static get componentName() {
-      return 'hy-img';
+      return 'shy-img';
     }
 
     static get defaults() {
       return {
         root: null,
-        rootMargin: '0px',
-        threshold: [0],
+        padding: [0],
       };
     }
 
     static get types() {
       return {
         root: string,
-        rootMargin: string,
-        threshold: arrayOf(number),
+        padding: arrayOf(number),
       };
     }
 
-    // Side effects of changing configuration options (if any).
-    // Mostly we just put the value on an observable and deal with it from there.
     static get sideEffects() {
       return {};
     }
+
+    /*
+    static get observers() {
+      if (!this._observers) this._observers = new WeakMap();
+      return this._observers;
+    }
+    */
 
     // ### Setup
     // Overriding the setup function.
@@ -67,26 +77,30 @@ export const imageMixin = C =>
 
     // Calling the [setup observables function](./setup.md) function.
     connectComponent() {
-      if ('IntersectionObserver' in window) {
-        this.intersectionObserver = new IntersectionObserver(
-          (entries) => {
-            // console.log(entries.length);
-            entries.forEach((entry) => {
-              if (entry.isIntersecting && !this.done) {
-                this.loadImage();
-              }
-            });
-          },
-          {
-            root: this.root,
-            rootMargin: this.rootMargin,
-            threshold: this.threshold,
-          },
-        );
+      /*
+      const scrollEl = this.root == null ? window : document.querySelector(this.root);
+      const { observers } = this.constructor;
+      if (observers.has(scrollEl)) {
+        this.observer = observers.get(scrollEl);
+      } else {
+        this.observer = new IntersectionObserver(callback, {
+          root: this.root,
+        });
+        observers.set(scrollEl, this.observer);
+      }
 
+      console.log(observers);
+      this.observer.observe(this.el);
+      */
+
+      if ('IntersectionObserver' in window) {
+        this.intersectionObserver = new IntersectionObserver(this.intersectionCallback.bind(this), {
+          root: this.root,
+          rootMargin: this.padding.map(x => `${x}px`).join(' '),
+        });
         this.intersectionObserver.observe(this.el);
       } else {
-        // Just load image
+        // When no intersection observer, just load image
         this.loadImage();
       }
 
@@ -94,18 +108,51 @@ export const imageMixin = C =>
       this.fireEvent('init');
     }
 
+    intersectionCallback(entries) {
+      // console.log(entries.length);
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !this.done) {
+          this.loadImage();
+        }
+      });
+    }
+
     loadImage() {
+      /*
+      const img = (this.done = new Image());
+      img.classList = this.el.classList;
+      if (this.el.hasAttribute('sizes')) {
+        img.sizes = this.el.getAttribute('sizes');
+      }
+      if (this.el.hasAttribute('srcset')) {
+        img.srcset = this.el.getAttribute('srcset');
+      }
+      if (this.el.hasAttribute('src')) {
+        img.src = this.el.getAttribute('src');
+      }
+      img.onload = e => this.fireEvent('load', { detail: e });
+      // img.onerror =...
+      this.el.appendChild(img);
+      */
+
       const noscript = this.el.querySelector('noscript');
       const temp = document.createElement('div');
       temp.innerHTML = noscript.textContent;
-      const cn = Array.from(temp.childNodes);
-      this.fireEvent('asdf', { detail: cn });
-      cn.forEach(node => this.el.appendChild(node));
+      const [img] = temp.childNodes;
+      if (process.env.DEBUG && img.tagName !== 'IMG') {
+        console.log('Content of <noscript> does not appear to be an <img>', img);
+      }
+      this.fireEvent('load-img', { detail: img });
+
+      this.el.removeChild(noscript);
+      this.el.appendChild(img);
+
       this.done = true;
     }
 
     disconnectComponent() {
-      // this.teardown$.next({});
+      /* this.teardown$.next({}); */
+      this.intersectionObserver.unobserve(this.el);
     }
 
     adoptComponent() {

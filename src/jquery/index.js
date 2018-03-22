@@ -22,7 +22,7 @@ import {
   Set,
 } from 'hy-component/src/define-jquery-component';
 
-import { pushStateMixin, MIXIN_FEATURE_TESTS } from '../mixin';
+import { imageMixin, MIXIN_FEATURE_TESTS } from '../mixin';
 
 export const JQUERY_FEATURE_TESTS = new Set([...MIXIN_FEATURE_TESTS]);
 JQUERY_FEATURE_TESTS.delete('customevent');
@@ -30,8 +30,8 @@ JQUERY_FEATURE_TESTS.delete('customevent');
 export { Set };
 
 defineJQueryComponent(
-  'hy.pushstate',
-  class extends pushStateMixin(JQueryComponent) {
+  'shy.img',
+  class extends imageMixin(JQueryComponent) {
     setupShadowDOM($el) {
       return $el;
     }

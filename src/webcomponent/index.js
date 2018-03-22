@@ -23,7 +23,7 @@ import {
   Set,
 } from 'hy-component/src/custom-element';
 
-import { pushStateMixin, MIXIN_FEATURE_TESTS } from '../mixin';
+import { imageMixin, MIXIN_FEATURE_TESTS } from '../mixin';
 
 export const WEBCOMPONENT_FEATURE_TESTS = new Set([
   ...CUSTOM_ELEMENT_FEATURE_TESTS,
@@ -32,7 +32,7 @@ export const WEBCOMPONENT_FEATURE_TESTS = new Set([
 
 export { Set };
 
-export class HyPushStateElement extends customElementMixin(pushStateMixin(CustomElement)) {
+export class ShyImageElement extends customElementMixin(imageMixin(CustomElement)) {
   static get observedAttributes() {
     return this.getObservedAttributes();
   }

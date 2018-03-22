@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { customElementMixin, CustomElement } from 'hy-component/esm/custom-element';
+import { customElementMixin, CustomElement } from 'hy-component/src/custom-element';
 
-import { pushStateMixin } from '../mixin';
+import { imageMixin } from '../mixin';
 
 const define = () => {
   customElements.define(
-    'hy-push-state',
-    class extends customElementMixin(pushStateMixin(CustomElement)) {
+    'shy-img',
+    class extends customElementMixin(imageMixin(CustomElement)) {
       static get observedAttributes() {
         return this.getObservedAttributes();
       }

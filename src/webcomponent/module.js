@@ -17,10 +17,10 @@
 // ## Overview
 // TODO
 
-import { HyPushStateElement } from './index';
+import { ShyImageElement } from './index';
 
 const define = () => {
-  window.customElements.define('hy-push-state', HyPushStateElement);
+  window.customElements.define('shy-img', ShyImageElement);
 };
 
 // Make sure the polyfills are ready (if they are being used).
