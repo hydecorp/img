@@ -4,6 +4,8 @@ node_js:
 deploy:
   provider: npm
   email: mail@qwtel.com
+  api_key:
+    secure: XNWvAXtYuhberHuOW5lL6rcJUr6uIITrNSdn4ZrCQBi+GN+YRr8oayRIW2XxVmbcx6+ysEeoaoyj1gQbXApqrppgZxAhHm/6Acosiys/j5FrSgkVi6FEqM9qQNbjHF4juR50whAUkH30X7mE8D4/+0cLeEmX5rUepBT8GyIAorVcqkC6I3TV4cV9O+yTzaNWxJ9wtBZsVCbjlKyPzsat7WPSneWq8k02XmdrpOIrABV2wj0w0Q6hvoO/DSDwMHRjNA1bU8jeDr0nwCLft15XIOojYgklXq22ezxDxtxeLwmnKowESkvOB/bScw5JbfIXuBfhsbMzG1yoEPc9AjqHk792FBiIAwByMJdi7U5T/w5W/mt8zmPE7PS3waLs8KKjxRDeo31NhzUdW5a+264aN2HrFnRnOrpjpsz6ZrwMQjDGtPo7yyEp3qOUlr/yCDyL+4Y92xvCUbzrKi9fKZtsBSYpTxugwyhse2CEOSL2Zsno4IqF8uDEPWfgQfSMUiN2eM5oIi8R/HHhkNOy1dYO6oDgPiHx01lkpr0GVkQ4Nu/TWNRa/Gw2sgKIr4m43uqtrL9idayLSpRTNFOZxWl4Mu6+1s/JceuN0jPagM4s1Q+EFD32BZa1HAX1wpA0UR9X+3ly8s/mvDI83O3oYX2AX9I30mdN1GvufszOKxl33z0=
   on:
     tags: true
     repo: qwtel/shy-img
