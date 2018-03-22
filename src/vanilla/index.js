@@ -16,9 +16,9 @@
 
 // import 'core-js/fn/array/from';
 
-import { VanillaComponent, Set } from 'hy-component/src/vanilla';
+import { VanillaComponent, Set } from "hy-component/src/vanilla";
 
-import { imageMixin, MIXIN_FEATURE_TESTS } from '../mixin';
+import { imageMixin, MIXIN_FEATURE_TESTS } from "../mixin";
 
 export const VANILLA_FEATURE_TESTS = MIXIN_FEATURE_TESTS;
 

@@ -6,7 +6,7 @@ without hard-coding any user-agent sniffing into of the component itself.
 * toc
 {:toc}
 
-## `replaceIds`
+<!-- ## `replaceIds`
 An array of HTML `id`s, that are children of this component,
 that should be replaced by the HTML elements of the same `id` from another page.
 
@@ -114,4 +114,4 @@ jQuery attribute
 : `data-duration`
 
 HTML attribute
-: `duration`
+: `duration` -->

@@ -4,7 +4,7 @@ This component follows the [Web Components Gold Standard][wcgs] to the extent po
 [wcgs]: https://github.com/webcomponents/gold-standard/wiki
 
 
-## Loading
+<!-- ## Loading
 
 > ✓ Expressed Dependencies — Does the component import or otherwise load all of its own dependencies?
 
@@ -291,4 +291,4 @@ Yes, but will show warnings when using the non-minified version / when `process.
 
 > ✓ Prefixed Name — Does the component have a name prefixed with a project name, element collection name, organization, or something with semantic meaning?
 
-Yes, `hy-`, which is short for [Hydejack](https://qwtel.com/hydejack/){:.external}, the parent project which prompted its development.
+Yes, `hy-`, which is short for [Hydejack](https://qwtel.com/hydejack/){:.external}, the parent project which prompted its development. -->

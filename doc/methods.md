@@ -8,7 +8,7 @@ When using the WebComponent, the methods are available directly on the HTML elem
 * toc
 {:toc}
 
-## `assign`
+<!-- ## `assign`
 Mimics the browser [`assign`](https://developer.mozilla.org/en-US/docs/Web/API/Location/assign) method.
 Will attempt to dynamically replace the current content with the content of the document at the provided URL.
 
@@ -33,4 +33,4 @@ Arguments:
 1.  `url` (required)
 
     Type
-    : `String` (URL)
+    : `String` (URL) -->

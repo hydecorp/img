@@ -16,14 +16,18 @@
 
 // Importing the hy-compontent base libary,
 // which helps with making multiple versions of the component (Vanilla JS, WebComponent, etc...).
-import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from 'hy-component/src/component';
-import { arrayOf, number, string } from 'hy-component/src/types';
+import {
+  componentMixin,
+  COMPONENT_FEATURE_TESTS,
+  Set
+} from "hy-component/src/component";
+import { arrayOf, number, string } from "hy-component/src/types";
 
 // A set of [Modernizr] tests that are required for this component to work.
 export const MIXIN_FEATURE_TESTS = new Set([
   ...COMPONENT_FEATURE_TESTS,
   // 'eventlistener',
-  'queryselector',
+  "queryselector"
   // 'requestanimationframe',
   // 'classlist',
   // 'opacity',
@@ -41,20 +45,20 @@ function callback(entries, observer) {
 export const imageMixin = C =>
   class extends componentMixin(C) {
     static get componentName() {
-      return 'shy-img';
+      return "shy-img";
     }
 
     static get defaults() {
       return {
         root: null,
-        padding: [0],
+        padding: [0]
       };
     }
 
     static get types() {
       return {
         root: string,
-        padding: arrayOf(number),
+        padding: arrayOf(number)
       };
     }
 
@@ -93,11 +97,14 @@ export const imageMixin = C =>
       this.observer.observe(this.el);
       */
 
-      if ('IntersectionObserver' in window) {
-        this.intersectionObserver = new IntersectionObserver(this.intersectionCallback.bind(this), {
-          root: this.root,
-          rootMargin: this.padding.map(x => `${x}px`).join(' '),
-        });
+      if ("IntersectionObserver" in window) {
+        this.intersectionObserver = new IntersectionObserver(
+          this.intersectionCallback.bind(this),
+          {
+            root: this.root,
+            rootMargin: this.padding.map(x => `${x}px`).join(" ")
+          }
+        );
         this.intersectionObserver.observe(this.el);
       } else {
         // When no intersection observer, just load image
@@ -105,12 +112,12 @@ export const imageMixin = C =>
       }
 
       // Firing an event to let the outside world know the drawer is ready.
-      this.fireEvent('init');
+      this.fireEvent("init");
     }
 
     intersectionCallback(entries) {
       // console.log(entries.length);
-      entries.forEach((entry) => {
+      entries.forEach(entry => {
         if (entry.isIntersecting && !this.done) {
           this.loadImage();
         }
@@ -135,14 +142,17 @@ export const imageMixin = C =>
       this.el.appendChild(img);
       */
 
-      const noscript = this.el.querySelector('noscript');
-      const temp = document.createElement('div');
+      const noscript = this.el.querySelector("noscript");
+      const temp = document.createElement("div");
       temp.innerHTML = noscript.textContent;
       const [img] = temp.childNodes;
-      if (process.env.DEBUG && img.tagName !== 'IMG') {
-        console.log('Content of <noscript> does not appear to be an <img>', img);
+      if (process.env.DEBUG && img.tagName !== "IMG") {
+        console.log(
+          "Content of <noscript> does not appear to be an <img>",
+          img
+        );
       }
-      this.fireEvent('load-img', { detail: img });
+      this.fireEvent("load-img", { detail: img });
 
       this.el.removeChild(noscript);
       this.el.appendChild(img);

@@ -20,19 +20,21 @@ import {
   customElementMixin,
   CustomElement,
   CUSTOM_ELEMENT_FEATURE_TESTS,
-  Set,
-} from 'hy-component/src/custom-element';
+  Set
+} from "hy-component/src/custom-element";
 
-import { imageMixin, MIXIN_FEATURE_TESTS } from '../mixin';
+import { imageMixin, MIXIN_FEATURE_TESTS } from "../mixin";
 
 export const WEBCOMPONENT_FEATURE_TESTS = new Set([
   ...CUSTOM_ELEMENT_FEATURE_TESTS,
-  ...MIXIN_FEATURE_TESTS,
+  ...MIXIN_FEATURE_TESTS
 ]);
 
 export { Set };
 
-export class ShyImageElement extends customElementMixin(imageMixin(CustomElement)) {
+export class ShyImageElement extends customElementMixin(
+  imageMixin(CustomElement)
+) {
   static get observedAttributes() {
     return this.getObservedAttributes();
   }

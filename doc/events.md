@@ -5,7 +5,7 @@ Note that --- to be an idiomatic WebComponent --- all communication form the com
 * toc
 {:toc}
 
-## `hy-push-state-init`
+<!-- ## `hy-push-state-init`
 This event is fired whenever the component gets attached to the DOM.
 
 jQuery event name
@@ -104,4 +104,4 @@ jQuery event name
 Event for generic errors. This event is fired when when there is an error while inserting new content into the DOM.
 
 jQuery event name
-: `error.hy.pushstate`
+: `error.hy.pushstate` -->

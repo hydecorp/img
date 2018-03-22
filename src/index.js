@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { imageMixin, MIXIN_FEATURE_TESTS } from './mixin';
-import { ShyImage, VANILLA_FEATURE_TESTS } from './vanilla';
-import { ShyImageElement, WEBCOMPONENT_FEATURE_TESTS } from './webcomponent';
+import { imageMixin, MIXIN_FEATURE_TESTS } from "./mixin";
+import { ShyImage, VANILLA_FEATURE_TESTS } from "./vanilla";
+import { ShyImageElement, WEBCOMPONENT_FEATURE_TESTS } from "./webcomponent";
 
 export {
   imageMixin,
@@ -24,5 +24,5 @@ export {
   ShyImage,
   VANILLA_FEATURE_TESTS,
   ShyImageElement,
-  WEBCOMPONENT_FEATURE_TESTS,
+  WEBCOMPONENT_FEATURE_TESTS
 };

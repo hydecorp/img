@@ -4,7 +4,7 @@
 * [Methods](methods.md){:.flip-title}
 * [Events](events.md){:.flip-title}
 
-## Usage
+<!-- ## Usage
 The most straight-forward way to use **hy-push-state** is by using the vanilla JS version and load it from a CDN:
 
 ~~~html
@@ -12,11 +12,11 @@ The most straight-forward way to use **hy-push-state** is by using the vanilla J
 ~~~
 
 ~~~html
-<main id="pushStateEl"><!--content--></main>
-<script>
-  var HyPushState = window.hyPushState.HyPushState;
-  var pushState = new HyPushState(window.pushStateEl, { /* options */ });
-</script>
+<shy-img>
+  <noscript>
+    <img src="..." srcset="..." alt="..." />
+  </noscript>
+</shy-img>
 ~~~
 
 This assumes all pages have an element with `id="pushStateEl"`, which will be used for replacement.
@@ -56,4 +56,4 @@ which is used to create the framework-specific versions of the component.
   * [`module.js`](source/webcomponent/module.md)
 * [`common.js`](source/common.md)
 * [`index.js`](source/README.md)
-* [`url.js`](source/url.md)
+* [`url.js`](source/url.md) -->
