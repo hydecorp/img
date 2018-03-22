@@ -48,8 +48,7 @@
     "yargs": "^11.1.0"
   },
   "dependencies": {
-    "hy-component": "^1.0.0-pre.4",
-    "rxjs": "^5.5.7"
+    "hy-component": "^1.0.0-pre.4"
   },
   "optionalDependencies": {
     "jquery": "^3.3.1"
