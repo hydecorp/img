@@ -48,7 +48,8 @@
     "yargs": "^11.1.0"
   },
   "dependencies": {
-    "hy-component": "^1.0.0-pre.4"
+    "hy-component": "^1.0.0-pre.4",
+    "rxjs": "^5.5.8"
   },
   "optionalDependencies": {
     "jquery": "^3.3.1"
@@ -66,6 +67,18 @@
     "url": "https://github.com/qwtel/shy-img/issues"
   },
   "homepage": "https://qwtel.com/shy-img/",
+  "prettier": {
+    "printWidth": 100
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true
+    },
+    "extends": "prettier",
+    "parserOptions": {
+      "sourceType": "module"
+    }
+  },
   "babel": {
     "presets": [
       "env"

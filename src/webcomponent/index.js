@@ -32,9 +32,7 @@ export const WEBCOMPONENT_FEATURE_TESTS = new Set([
 
 export { Set };
 
-export class ShyImageElement extends customElementMixin(
-  imageMixin(CustomElement)
-) {
+export class ShyImageElement extends customElementMixin(imageMixin(CustomElement)) {
   static get observedAttributes() {
     return this.getObservedAttributes();
   }
