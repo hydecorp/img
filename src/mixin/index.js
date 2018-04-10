@@ -21,10 +21,10 @@ import { rxjsMixin } from "hy-component/src/rxjs";
 import { arrayOf, oneOf, number, string } from "hy-component/src/types";
 
 import { Observable } from "rxjs/_esm5/Observable";
-import { Subject } from "rxjs/_esm5/Subject";
 
 import { combineLatest } from "rxjs/_esm5/observable/combineLatest";
 import { never } from "rxjs/_esm5/observable/never";
+import { of } from "rxjs/_esm5/observable/of";
 
 import { ajax } from "rxjs/_esm5/observable/dom/ajax";
 
@@ -181,9 +181,10 @@ export const imageMixin = C =>
         const [intoView$, outaView$] = isIntersecting$.pipe(partition(x => x));
         const trigger$ = intoView$.pipe(distinctUntilChanged());
 
-        // TODO: check for resize observer
-        const resize$ = createResizeObservable(this.el).pipe(takeUntil(this.subjects.disconnect));
-        // const viewport$ = fromEvent(document, 'resize', { passive: true }).pipe()
+        const resize$ =
+          "ResizeObserver" in window
+            ? createResizeObservable(this.el).pipe(takeUntil(this.subjects.disconnect))
+            : of({ contentRect: this.el.getBoundingClientRect() });
 
         const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
           takeUntil(this.subjects.disconnect),
