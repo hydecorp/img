@@ -63,7 +63,7 @@ const createXObservable = X => (el, opts) =>
     const observer = new X(xs => Array.from(xs).forEach(next), opts);
     observer.observe(el);
     return () => {
-      if (process.env.DEBUG) console.log("unobserve", X.name);
+      // if (process.env.DEBUG) console.log("unobserve", X.name);
       observer.unobserve(el);
     };
   });
@@ -76,7 +76,7 @@ const createObjectURL = blob =>
     const objURL = URL.createObjectURL(blob);
     obs.next(objURL);
     return () => {
-      if (process.env.DEBUG) console.log("revoke", objURL);
+      // if (process.env.DEBUG) console.log("revoke", objURL);
       URL.revokeObjectURL(objURL);
     };
   });
@@ -173,7 +173,7 @@ export const imageMixin = C =>
 
       if ("IntersectionObserver" in window) {
         const isIntersecting$ = createIntersectionObservable(this.el).pipe(
-          /* takeUntil(this.subjects.disconnect), */
+          takeUntil(this.subjects.disconnect),
           map(({ isIntersecting }) => isIntersecting),
           share()
         );
@@ -182,10 +182,11 @@ export const imageMixin = C =>
         const trigger$ = intoView$.pipe(distinctUntilChanged());
 
         // TODO: check for resize observer
-        const resize$ = createResizeObservable(this.el);
+        const resize$ = createResizeObservable(this.el).pipe(takeUntil(this.subjects.disconnect));
         // const viewport$ = fromEvent(document, 'resize', { passive: true }).pipe()
 
         const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
+          takeUntil(this.subjects.disconnect),
           startWith([this.src, this.srcset]),
           map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
           /* tap(() => console.log("asdf")) */
@@ -211,16 +212,16 @@ export const imageMixin = C =>
                 race(
                   outaView$.pipe(
                     map(() => {
-                      throw Error("fuuu");
+                      // if (process.env.DEBUG) console.log("cancel", url.href);
+                      throw Error();
                     })
                   )
                 ),
                 retryWhen(() => intoView$)
               )
             ),
-            switchMap(({ response }) =>
-              createObjectURL(response).pipe(takeUntil(this.subjects.disconnect))
-            )
+            switchMap(({ response }) => createObjectURL(response)),
+            takeUntil(this.subjects.disconnect)
           )
           .subscribe(
             url => {
@@ -228,7 +229,7 @@ export const imageMixin = C =>
               /* this.objectURL = url; */
             },
             err => {
-              if (process.env.DEBUG) console.error(err);
+              // if (process.env.DEBUG) console.error(err);
               this.updateImage(this.src);
             }
           );
