@@ -19,9 +19,7 @@
 
 import { ShyImageElement } from "./index";
 
-const define = () => {
-  window.customElements.define("shy-img", ShyImageElement);
-};
+const define = () => window.customElements.define("shy-img", ShyImageElement);
 
 // Make sure the polyfills are ready (if they are being used).
 if ("customElements" in window || (window.WebComponents && window.WebComponents.ready)) {
