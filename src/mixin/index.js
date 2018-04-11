@@ -18,7 +18,7 @@
 // which helps with making multiple versions of the component (Vanilla JS, WebComponent, etc...).
 import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/component";
 import { rxjsMixin } from "hy-component/src/rxjs";
-import { arrayOf, oneOf, number, string } from "hy-component/src/types";
+import { arrayOf, bool, oneOf, number, string } from "hy-component/src/types";
 
 import { Observable } from "rxjs/_esm5/Observable";
 
@@ -63,7 +63,7 @@ const createXObservable = X => (el, opts) =>
     const observer = new X(xs => Array.from(xs).forEach(next), opts);
     observer.observe(el);
     return () => {
-      // if (process.env.DEBUG) console.log("unobserve", X.name);
+      if (process.env.DEBUG) console.log("unobserve", X.name);
       observer.unobserve(el);
     };
   });
@@ -76,7 +76,7 @@ const createObjectURL = blob =>
     const objURL = URL.createObjectURL(blob);
     obs.next(objURL);
     return () => {
-      // if (process.env.DEBUG) console.log("revoke", objURL);
+      if (process.env.DEBUG) console.log("revoke", objURL);
       URL.revokeObjectURL(objURL);
     };
   });
@@ -114,22 +114,38 @@ export const imageMixin = C =>
     static get defaults() {
       return {
         root: null,
+        padding: [0],
         src: null,
         srcset: null,
         alt: null,
-        padding: [0],
-        decoding: "async"
+        decoding: null,
+        longdesc: null,
+        ismap: false,
+        usemap: null
+        /* referrerpolicy: null, */
       };
     }
 
     static get types() {
       return {
         root: string,
+        padding: arrayOf(number),
         src: string,
         srcset: string,
         alt: string,
-        padding: arrayOf(number),
-        decoding: oneOf(["sync", "async", "auto"])
+        decoding: oneOf(["sync", "async", "auto"]),
+        longdesc: string,
+        ismap: bool,
+        usemap: string
+        /*
+        referrerpolicy: oneOf([
+          "no-referrer",
+          "no-referrer-when-downgrade",
+          "origin",
+          "origin-when-cross-origin",
+          "unsafe-url"
+        ]),
+        */
       };
     }
 
@@ -151,11 +167,8 @@ export const imageMixin = C =>
     }
 
     updateImage(url) {
-      /* if (process.env.DEBUG) console.log("create image", this.src); */
       /* this.img.style.width = "100%"; */
-      this.img.src = url;
       if (this.alt) this.img.setAttribute("alt", this.alt);
-      /* this.el.appendChild(this.img); */
     }
 
     // Calling the [setup observables function](./setup.md) function.
@@ -166,7 +179,6 @@ export const imageMixin = C =>
       */
 
       this.img = document.createElement("img");
-      this.img.decoding = this.decoding;
       window.requestAnimationFrame(() => this.el.appendChild(this.img));
 
       // const url$ = ;
@@ -190,9 +202,75 @@ export const imageMixin = C =>
           takeUntil(this.subjects.disconnect),
           startWith([this.src, this.srcset]),
           map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
-          /* tap(() => console.log("asdf")) */
         );
 
+        const url$ = combineLatest(resize$, srcset$).pipe(
+          map(
+            ([{ contentRect: { width } }, srcsetObj]) =>
+              new URL(
+                srcsetObj.select(width || window.screen.width, window.devicePixelRatio || 1),
+                window.location
+              )
+          ),
+          distinctUntilKeyChanged("href")
+        );
+
+        const blob$ = combineLatest(isIntersecting$, url$).pipe(
+          switchMap(
+            ([isIntersecting, url]) =>
+              isIntersecting
+                ? ajax({
+                    method: "GET",
+                    url,
+                    crossDomain: isExternal(url),
+                    responseType: "blob"
+                  })
+                : never()
+          ),
+          takeUntil(this.subjects.disconnect)
+        );
+
+        const objectURL$ = blob$.pipe(
+          switchMap(({ response }) => createObjectURL(response)),
+          takeUntil(this.subjects.disconnect)
+        );
+
+        objectURL$.subscribe(
+          url => (this.img.src = url),
+          err => {
+            if (process.env.DEBUG) console.error(err);
+
+            if (this.el.hasAttribute("sizes"))
+              this.img.setAttribute("sizes", this.getAttribute("sizes"));
+            if (this.el.hasAttribute("crossorigin"))
+              this.img.setAttribute("crossorigin", this.getAttribute("crossorigin"));
+            if (this.el.hasAttribute("referrerpolicy"))
+              this.img.setAttribute("referrerpolicy", this.getAttribute("referrerpolicy"));
+
+            // TODO: pass on width/height?
+
+            if (this.srcset) this.img.srcset = this.srcset;
+            if (this.src) this.img.src = this.src;
+          }
+        );
+
+        const updateAttr = name => x =>
+          x == null || x === false
+            ? this.img.removeAttribute(name)
+            : this.img.setAttribute(name, x === true ? "" : x);
+
+        // const updateAttr2 = name => x =>
+        //   x == null ? this.img.removeAttribute(name) : this.img.setAttribute(name, x);
+
+        this.subjects.alt.subscribe(updateAttr("alt"));
+        this.subjects.decoding.subscribe(updateAttr("decoding"));
+        this.subjects.longdesc.subscribe(updateAttr("longdesc"));
+
+        // TODO: necessary?
+        this.subjects.ismap.subscribe(updateAttr("ismap"));
+        this.subjects.usemap.subscribe(updateAttr("usemap"));
+
+        /*
         combineLatest(resize$, srcset$, trigger$)
           .pipe(
             map(
@@ -218,22 +296,24 @@ export const imageMixin = C =>
                     })
                   )
                 ),
+                // TODO: check if the error is from us or from the server...
                 retryWhen(() => intoView$)
               )
             ),
             switchMap(({ response }) => createObjectURL(response)),
             takeUntil(this.subjects.disconnect)
           )
-          .subscribe(
-            url => {
-              this.updateImage(url);
-              /* this.objectURL = url; */
-            },
-            err => {
-              // if (process.env.DEBUG) console.error(err);
-              this.updateImage(this.src);
-            }
-          );
+        .subscribe(
+          url => {
+            this.updateImage(url);
+            // this.objectURL = url;
+          },
+          err => {
+            // if (process.env.DEBUG) console.error(err);
+            this.updateImage(this.src);
+          }
+        );
+        */
 
         /*
         this.intersectionObserver = new IntersectionObserver(this.intersectionCallback.bind(this), {
