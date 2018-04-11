@@ -171,15 +171,20 @@ export const imageMixin = C =>
       if (this.alt) this.img.setAttribute("alt", this.alt);
     }
 
+    get img() {
+      if (!this.img_) {
+        this.img_ = document.createElement("img");
+        window.requestAnimationFrame(() => this.el.appendChild(this.img_));
+      }
+      return this.img_;
+    }
+
     // Calling the [setup observables function](./setup.md) function.
     connectComponent() {
       /*
       this.el.style.display = "inline-block";
       this.el.style.position = "relative";
       */
-
-      this.img = document.createElement("img");
-      window.requestAnimationFrame(() => this.el.appendChild(this.img));
 
       // const url$ = ;
 
@@ -235,8 +240,11 @@ export const imageMixin = C =>
           takeUntil(this.subjects.disconnect)
         );
 
+        // Whenever the object URL changes, we set the new image src.
         objectURL$.subscribe(
           url => (this.img.src = url),
+          // In case of an error, we just set all the original attributes on the image
+          // and let the browser handle the rest.
           err => {
             if (process.env.DEBUG) console.error(err);
 
@@ -247,20 +255,23 @@ export const imageMixin = C =>
             if (this.el.hasAttribute("referrerpolicy"))
               this.img.setAttribute("referrerpolicy", this.getAttribute("referrerpolicy"));
 
-            // TODO: pass on width/height?
+            /* TODO: pass on width/height? */
 
             if (this.srcset) this.img.srcset = this.srcset;
             if (this.src) this.img.src = this.src;
           }
         );
 
+        // Reflect attributes changes on the original on the inner img.
         const updateAttr = name => x =>
           x == null || x === false
             ? this.img.removeAttribute(name)
             : this.img.setAttribute(name, x === true ? "" : x);
 
-        // const updateAttr2 = name => x =>
-        //   x == null ? this.img.removeAttribute(name) : this.img.setAttribute(name, x);
+        /*
+        const updateAttr2 = name => x =>
+          x == null ? this.img.removeAttribute(name) : this.img.setAttribute(name, x);
+        */
 
         this.subjects.alt.subscribe(updateAttr("alt"));
         this.subjects.decoding.subscribe(updateAttr("decoding"));
