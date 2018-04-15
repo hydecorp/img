@@ -32,17 +32,11 @@ import { distinctUntilChanged } from "rxjs/_esm5/operators/distinctUntilChanged"
 import { distinctUntilKeyChanged } from "rxjs/_esm5/operators/distinctUntilKeyChanged";
 import { filter } from "rxjs/_esm5/operators/filter";
 import { map } from "rxjs/_esm5/operators/map";
-// import { partition } from "rxjs/_esm5/operators/partition";
-import { race } from "rxjs/_esm5/operators/race";
-import { retryWhen } from "rxjs/_esm5/operators/retryWhen";
 import { share } from "rxjs/_esm5/operators/share";
 import { startWith } from "rxjs/_esm5/operators/startWith";
 import { switchMap } from "rxjs/_esm5/operators/switchMap";
-import { take } from "rxjs/_esm5/operators/take";
 import { takeUntil } from "rxjs/_esm5/operators/takeUntil";
 import { tap } from "rxjs/_esm5/operators/tap";
-
-import { subscribeWhen } from "./operators";
 
 import { parseSrcset, srcsetFromSrc } from "./srcset";
 
@@ -57,20 +51,6 @@ function blobToDataURL(blob) {
 }
 */
 
-const createXObservable = X => (el, cOpts, oOpts) =>
-  Observable.create(obs => {
-    const next = obs.next.bind(obs);
-    const observer = new X(xs => Array.from(xs).forEach(next), cOpts);
-    observer.observe(el, oOpts);
-    return () => {
-      if (process.env.DEBUG) console.log("unobserve", X.name);
-      observer.unobserve(el);
-    };
-  });
-
-const createIntersectionObservable = createXObservable(window.IntersectionObserver);
-const createResizeObservable = createXObservable(window.ResizeObserver);
-
 /*
 const createObjectURL = blob =>
   Observable.create(obs => {
@@ -82,6 +62,24 @@ const createObjectURL = blob =>
     };
   });
 */
+
+const createXObservable = X => (el, cOpts, oOpts) =>
+  Observable.create(obs => {
+    const next = obs.next.bind(obs);
+    const observer = new X(xs => Array.from(xs).forEach(next), cOpts);
+    // if (process.env.DEBUG) console.log("observe", X.name);
+    observer.observe(el, oOpts);
+    return () => {
+      // if (process.env.DEBUG) console.log("unobserve", X.name);
+      observer.unobserve(el);
+    };
+  });
+
+const createIntersectionObservable = createXObservable(window.IntersectionObserver);
+const createResizeObservable = createXObservable(window.ResizeObserver);
+
+const idle = x => new Promise(res => window.requestIdleCallback(() => res(x)));
+/* const anim = x => new Promise(res => window.requestAnimationFrame(() => res(x))); */
 
 // Consider a URL external if either the protocol, hostname or port is different.
 function isExternal({ protocol, host }, location = window.location) {
@@ -100,13 +98,6 @@ export const MIXIN_FEATURE_TESTS = new Set([
   // 'csspointerevents',
 ]);
 
-/*
-function callback(entries, observer) {
-  console.log(entries[0]);
-  // console.log(entries, observer);
-}
-*/
-
 export const imageMixin = C =>
   class extends rxjsMixin(componentMixin(C)) {
     static get componentName() {
@@ -116,7 +107,7 @@ export const imageMixin = C =>
     static get defaults() {
       return {
         root: null,
-        padding: [0],
+        rootMargin: "0px",
         src: null,
         srcset: null,
         alt: null,
@@ -131,7 +122,7 @@ export const imageMixin = C =>
     static get types() {
       return {
         root: string,
-        padding: arrayOf(number),
+        rootMargin: string,
         src: string,
         srcset: string,
         alt: string,
@@ -183,78 +174,61 @@ export const imageMixin = C =>
       this.el.style.position = "relative";
       */
       window.requestIdleCallback(() => {
-        if (process.env.DEBUG) console.time("shy-img");
+        // if (process.env.DEBUG) console.time("shy-img");
 
-        if ("IntersectionObserver" in window) {
-          const isIntersecting$ = createIntersectionObservable(this.el, {
-            root: this.root,
-            rootMargin: this.padding.map(x => `${x}px`).join(" "),
-          }).pipe(
-            takeUntil(this.subjects.disconnect),
-            map(({ isIntersecting }) => isIntersecting),
-            share()
+        const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
+          switchMap(
+            ([root, rootMargin]) =>
+              "IntersectionObserver" in window
+                ? createIntersectionObservable(this.el, { root, rootMargin })
+                : of({ isIntersecting: true })
+          ),
+          map(({ isIntersecting }) => isIntersecting),
+          takeUntil(this.subjects.disconnect),
+          share()
+        );
+
+        isIntersecting$.pipe(filter(x => x), distinctUntilChanged()).subscribe(() => {
+          // TODO: polyfill?
+          const cache = (this.cache = new Map());
+
+          const resize$ =
+            "ResizeObserver" in window
+              ? createResizeObservable(this.el).pipe(
+                  startWith({ contentRect: this.el.getBoundingClientRect() })
+                )
+              : of({ contentRect: this.el.getBoundingClientRect() });
+
+          const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
+            filter(([a, b]) => a != null || b != null),
+            distinctUntilChanged(([p1, p2], [q1, q2]) => p1 === q1 && p2 === q2),
+            map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
           );
 
-          const trigger$ = isIntersecting$.pipe(filter(x => x), distinctUntilChanged());
+          const url$ = combineLatest(resize$, srcset$).pipe(
+            map(
+              ([{ contentRect: { width } }, srcsetObj]) =>
+                new URL(
+                  srcsetObj.select(width || window.screen.width, window.devicePixelRatio || 1),
+                  window.location
+                )
+            ),
+            distinctUntilKeyChanged("href")
+          );
 
-          trigger$.subscribe(() => {
-            const resize$ =
-              "ResizeObserver" in window
-                ? createResizeObservable(this.el).pipe(takeUntil(this.subjects.disconnect))
-                : of({ contentRect: this.el.getBoundingClientRect() });
+          const isIntersecting2$ = isIntersecting$.pipe(startWith(true), distinctUntilChanged());
 
-            const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
-              takeUntil(this.subjects.disconnect),
-              map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
-            );
-
-            const url$ = combineLatest(resize$, srcset$).pipe(
-              map(
-                ([{ contentRect: { width } }, srcsetObj]) =>
-                  new URL(
-                    srcsetObj.select(width || window.screen.width, window.devicePixelRatio || 1),
-                    window.location
-                  )
-              ),
-              distinctUntilKeyChanged("href")
-            );
-
-            // TODO: polyfill?
-            this.cache =
-              false && "Map" in window
-                ? new Map()
-                : {
-                    has(k) {
-                      this._vs = this._vs || {};
-                      return this._vs[k] != null;
-                    },
-                    get(k) {
-                      this._vs = this._vs || {};
-                      return this._vs[k];
-                    },
-                    set(k, v) {
-                      this._vs = this._vs || {};
-                      this._vs[k] = v;
-                    },
-                    forEach(f) {
-                      this._vs = this._vs || {};
-                      Object.keys(this._vs).forEach(k => f(this._vs[k], k));
-                    },
-                  };
-
-            const objectURL$ = combineLatest(isIntersecting$.pipe(startWith(true)), url$).pipe(
-              // TODO: don't reload images that have already finished loading
-              // i.e. some kind of caching..
-              switchMap(([isIntersecting, url]) => {
-                const { cache } = this;
+          combineLatest(url$, isIntersecting2$)
+            .pipe(
+              switchMap(([url, isIntersecting]) => {
                 const { href } = url;
 
                 if (isIntersecting && !cache.has(href))
                   return ajax({
                     method: "GET",
+                    responseType: "blob",
                     url,
                     crossDomain: isExternal(url),
-                    responseType: "blob",
                   }).pipe(
                     map(({ response }) => URL.createObjectURL(response)),
                     tap(objectURL => cache.set(href, objectURL))
@@ -263,11 +237,12 @@ export const imageMixin = C =>
                 else return never();
               }),
               takeUntil(this.subjects.disconnect)
-            );
+            )
 
             // Whenever the object URL changes, we set the new image src.
-            objectURL$.subscribe(
+            .subscribe(
               url => (this.img.src = url),
+
               // In case of an error, we just set all the original attributes on the image
               // and let the browser handle the rest.
               err => {
@@ -287,39 +262,33 @@ export const imageMixin = C =>
               }
             );
 
-            // Reflect attributes changes on the original on the inner img.
-            const updateAttr = name => x =>
-              x == null || x === false
-                ? this.img.removeAttribute(name)
-                : this.img.setAttribute(name, x === true ? "" : x);
+          // Reflect attributes changes on the original on the inner img.
+          const updateAttr = name => x =>
+            x == null || x === false
+              ? this.img.removeAttribute(name)
+              : this.img.setAttribute(name, x === true ? "" : x);
 
-            /*
+          /*
             const updateAttr2 = name => x =>
               x == null ? this.img.removeAttribute(name) : this.img.setAttribute(name, x);
             */
 
-            this.subjects.alt.subscribe(updateAttr("alt"));
-            this.subjects.decoding.subscribe(updateAttr("decoding"));
-            this.subjects.longdesc.subscribe(updateAttr("longdesc"));
+          this.subjects.alt.subscribe(updateAttr("alt"));
+          this.subjects.decoding.subscribe(updateAttr("decoding"));
+          this.subjects.longdesc.subscribe(updateAttr("longdesc"));
 
-            // TODO: necessary?
-            this.subjects.ismap.subscribe(updateAttr("ismap"));
-            this.subjects.usemap.subscribe(updateAttr("usemap"));
-          });
+          // TODO: necessary?
+          this.subjects.ismap.subscribe(updateAttr("ismap"));
+          this.subjects.usemap.subscribe(updateAttr("usemap"));
+        });
 
-          // When no intersection observer, just load image
-        } else {
-          // TODO: run same code as 'error' ?
-          this.loadImage();
-        }
-
-        // TODO: doc
-        this.nextValues();
+        // TODO: meh..
+        super.connectComponent();
 
         // Firing an event to let the outside world know the drawer is ready.
         this.fireEvent("init");
 
-        if (process.env.DEBUG) console.timeEnd("shy-img");
+        // if (process.env.DEBUG) console.timeEnd("shy-img");
       });
 
       /*
@@ -421,7 +390,7 @@ export const imageMixin = C =>
       super.disconnectComponent();
       if (this.cache)
         this.cache.forEach(objURL => {
-          if (process.env.DEBUG) console.log("revoke", objURL);
+          // if (process.env.DEBUG) console.log("revoke", objURL);
           URL.revokeObjectURL(objURL);
         });
     }
