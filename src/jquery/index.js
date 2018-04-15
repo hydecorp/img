@@ -19,7 +19,7 @@
 import {
   JQueryComponent,
   defineJQueryComponent,
-  Set
+  Set,
 } from "hy-component/src/define-jquery-component";
 
 import { imageMixin, MIXIN_FEATURE_TESTS } from "../mixin";
