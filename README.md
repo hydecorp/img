@@ -6,20 +6,11 @@
 
 ## Example
 
-* [Mixin Example](https://qwtel.com/shy-img/example/mixin/){:.external}
-* [Vanilla JS Example](https://qwtel.com/shy-img/example/vanilla/){:.external}
-* [jQuery Example](https://qwtel.com/shy-img/example/jquery/){:.external}
-* [WebComponent Example](https://qwtel.com/shy-img/example/webcomponent/){:.external}
+* [Mixin Example](https://qwtel.com/hy-push-state/example/mixin/){:.external}
+* [Vanilla JS Example](https://qwtel.com/hy-push-state/example/vanilla/){:.external}
+* [jQuery Example](https://qwtel.com/hy-push-state/example/jquery/){:.external}
+* [WebComponent Example](https://qwtel.com/hy-push-state/example/webcomponent/){:.external}
 
-## Usage
-
-```html
-<shy-img>
-  <noscript>
-    <img src="..." />
-  </noscript>
-</shy-img>
-```
 
 ## License
 
