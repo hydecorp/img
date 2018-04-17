@@ -153,49 +153,44 @@ export const imageMixin = C =>
     // ### Setup
     // Calling the [setup observables function](./setup.md) function.
     connectComponent() {
-      this.updateAttr = this.updateAttr.bind(this);
-
       this.loadImage$ = new Subject();
 
       this.img = document.createElement("img");
       this.sizer = document.createElement("div");
 
       this.loading = this.el.querySelector('[slot="loading"]');
-
-      /* requestAnimationFrame(() => { */
-      this.img.style.display = "block";
       if (this.loading) this.sizer.appendChild(this.loading);
+
+      this.img.style.display = "block";
       this.el.appendChild(this.sizer);
-      /* }); */
 
       requestIdleCallback(() => {
+        // TODO: This triggers are layout event for every shy-img,
+        // but we need to get the width of the image somehow.
+        const initialRect = { contentRect: this.el.getBoundingClientRect() };
+
         const resize$ =
           "ResizeObserver" in window
-            ? createResizeObservable(this.el).pipe(
-                startWith({ contentRect: this.el.getBoundingClientRect() })
-              )
-            : of({ contentRect: this.el.getBoundingClientRect() });
+            ? createResizeObservable(this.el).pipe(startWith(initialRect))
+            : of(initialRect);
 
-        combineLatest(this.subjects.width, this.subjects.height, resize$)
-          .pipe(takeUntil(this.subjects.disconnect))
-          .subscribe(([width, height, { contentRect: { width: contentWidth } }]) => {
-            this.sizer.style.position = "relative";
-
+        const sizerStyle$ = combineLatest(resize$, this.subjects.width, this.subjects.height).pipe(
+          takeUntil(this.subjects.disconnect),
+          map(([{ contentRect: { width: contentWidth } }, width, height]) => {
             if (width != null && height != null) {
               if (width >= contentWidth) {
-                this.sizer.style.width = "100%";
-                this.sizer.style.paddingTop = `${height / width * 100}%`;
+                return { width: "100%", paddingTop: `${height / width * 100}%` };
               } else {
-                this.sizer.style.width = `${width}px`;
-                this.sizer.style.height = `${height}px`;
+                return { width: `${width}px`, height: `${height}px` };
               }
             } else {
-              this.sizer.style.width = "100%";
-              this.sizer.style.height = "100%";
+              return { width: "100%", height: "100%" };
             }
-          });
+          })
+        );
 
         const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
+          takeUntil(this.subjects.disconnect),
           switchMap(
             ([root, rootMargin]) =>
               "IntersectionObserver" in window
@@ -204,7 +199,6 @@ export const imageMixin = C =>
           ),
           map(({ isIntersecting }) => isIntersecting),
           merge(this.loadImage$),
-          takeUntil(this.subjects.disconnect),
           share()
         );
 
@@ -219,7 +213,7 @@ export const imageMixin = C =>
           );
 
           const url$ = combineLatest(resize$, srcset$).pipe(
-            map(this.selectURL.bind(this)),
+            map(this.selectImgURL.bind(this)),
             distinctUntilKeyChanged("href")
           );
 
@@ -232,6 +226,10 @@ export const imageMixin = C =>
           );
 
           // ### Subscriptions
+          sizerStyle$.subscribe(styles =>
+            Object.assign(this.sizer.style, { position: "relative" }, styles)
+          );
+
           // Whenever the object URL changes, we set the new image src.
           img$.subscribe(
             () =>
@@ -248,11 +246,13 @@ export const imageMixin = C =>
             }
           );
 
+          // Keeping other properties up-to-date.
+          this.updateAttr = this.updateAttr.bind(this);
           this.subjects.alt.subscribe(this.updateAttr("alt"));
           this.subjects.decoding.subscribe(this.updateAttr("decoding"));
           this.subjects.longdesc.subscribe(this.updateAttr("longdesc"));
 
-          // TODO: necessary?
+          /* TODO: necessary? */
           this.subjects.ismap.subscribe(this.updateAttr("ismap"));
           this.subjects.usemap.subscribe(this.updateAttr("usemap"));
         });
@@ -265,7 +265,7 @@ export const imageMixin = C =>
       });
     }
 
-    selectURL([{ contentRect: { width } }, srcsetObj]) {
+    selectImgURL([{ contentRect: { width } }, srcsetObj]) {
       return new URL(
         srcsetObj.select(width || window.screen.width, window.devicePixelRatio || 1),
         window.location
@@ -319,17 +319,11 @@ export const imageMixin = C =>
     }
 
     loadImageFallback() {
-      if (this.el.hasAttribute("sizes")) {
-        this.img.setAttribute("sizes", this.getAttribute("sizes"));
-      }
-
-      if (this.el.hasAttribute("crossorigin")) {
+      if (this.el.hasAttribute("sizes")) this.img.setAttribute("sizes", this.getAttribute("sizes"));
+      if (this.el.hasAttribute("crossorigin"))
         this.img.setAttribute("crossorigin", this.getAttribute("crossorigin"));
-      }
-
-      if (this.el.hasAttribute("referrerpolicy")) {
+      if (this.el.hasAttribute("referrerpolicy"))
         this.img.setAttribute("referrerpolicy", this.getAttribute("referrerpolicy"));
-      }
 
       /* TODO: pass on width/height? */
 
