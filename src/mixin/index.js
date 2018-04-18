@@ -20,7 +20,6 @@ import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/c
 import { rxjsMixin } from "hy-component/src/rxjs";
 import { arrayOf, bool, oneOf, number, string } from "hy-component/src/types";
 
-import { Observable } from "rxjs/_esm5/Observable";
 import { Subject } from "rxjs/_esm5/Subject";
 
 import { combineLatest } from "rxjs/_esm5/observable/combineLatest";
@@ -33,7 +32,6 @@ import { ajax } from "rxjs/_esm5/observable/dom/ajax";
 import { distinctUntilChanged } from "rxjs/_esm5/operators/distinctUntilChanged";
 import { distinctUntilKeyChanged } from "rxjs/_esm5/operators/distinctUntilKeyChanged";
 import { filter } from "rxjs/_esm5/operators/filter";
-/* import { finalize } from "rxjs/_esm5/operators/finalize"; */
 import { map } from "rxjs/_esm5/operators/map";
 import { merge } from "rxjs/_esm5/operators/merge";
 import { share } from "rxjs/_esm5/operators/share";
@@ -42,53 +40,14 @@ import { switchMap } from "rxjs/_esm5/operators/switchMap";
 import { takeUntil } from "rxjs/_esm5/operators/takeUntil";
 import { tap } from "rxjs/_esm5/operators/tap";
 
+import {
+  hasCSSOM,
+  createIntersectionObservable,
+  createResizeObservable,
+  isExternal,
+} from "../common";
+
 import { parseSrcset, srcsetFromSrc } from "./srcset";
-
-/*
-function blobToDataURL(blob) {
-  return new Promise((res, rej) => {
-    const a = new FileReader();
-    a.onload = ({ target: { result } }) => res(result);
-    a.onerror = rej;
-    a.readAsDataURL(blob);
-  });
-}
-*/
-
-/*
-const createObjectURL = blob =>
-  Observable.create(obs => {
-    const objURL = URL.createObjectURL(blob);
-    obs.next(objURL);
-    return () => {
-      if (process.env.DEBUG) console.log("revoke", objURL);
-      URL.revokeObjectURL(objURL);
-    };
-  });
-*/
-
-const createXObservable = X => (el, cOpts, oOpts) =>
-  Observable.create(obs => {
-    const next = obs.next.bind(obs);
-    const observer = new X(xs => Array.from(xs).forEach(next), cOpts);
-    // if (process.env.DEBUG) console.log("observe", X.name);
-    observer.observe(el, oOpts);
-    return () => {
-      // if (process.env.DEBUG) console.log("unobserve", X.name);
-      observer.unobserve(el);
-    };
-  });
-
-const createIntersectionObservable = createXObservable(window.IntersectionObserver);
-const createResizeObservable = createXObservable(window.ResizeObserver);
-
-/* const idle = x => new Promise(res => requestIdleCallback(() => res(x))); */
-/* const anim = x => new Promise(res => requestAnimationFrame(() => res(x))); */
-
-// Consider a URL external if either the protocol, hostname or port is different.
-function isExternal({ protocol, host }, location = window.location) {
-  return protocol !== location.protocol || host !== location.host;
-}
 
 // A set of [Modernizr] tests that are required for this component to work.
 export const MIXIN_FEATURE_TESTS = new Set([
@@ -148,16 +107,23 @@ export const imageMixin = C =>
 
     // ### Setup
     // Calling the [setup observables function](./setup.md) function.
-    connectComponent() {
+    setupComponent(el, props) {
+      super.setupComponent(el, props);
       this.loadImage$ = new Subject();
+    }
 
+    connectComponent() {
       this.img = document.createElement("img");
       this.sizer = document.createElement("div");
 
+      // TODO: update loading when dom changes... use shadow dom after all?
       this.loading = this.el.querySelector('[slot="loading"]');
       if (this.loading) this.sizer.appendChild(this.loading);
 
-      this.img.style.display = "block";
+      // TODO: don't force inline styles
+      if (hasCSSOM) this.img.attributeStyleMap.set("display", "block");
+      else this.img.style.display = "block";
+
       this.el.appendChild(this.sizer);
 
       requestIdleCallback(() => {
@@ -171,18 +137,7 @@ export const imageMixin = C =>
             : of(initialRect);
 
         const sizerStyle$ = combineLatest(resize$, this.subjects.width, this.subjects.height).pipe(
-          takeUntil(this.subjects.disconnect),
-          map(([{ contentRect: { width: contentWidth } }, width, height]) => {
-            if (width != null && height != null) {
-              if (width >= contentWidth) {
-                return { width: "100%", paddingTop: `${height / width * 100}%` };
-              } else {
-                return { width: `${width}px`, height: `${height}px` };
-              }
-            } else {
-              return { width: "100%", height: "100%" };
-            }
-          })
+          takeUntil(this.subjects.disconnect)
         );
 
         const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
@@ -216,18 +171,17 @@ export const imageMixin = C =>
           const isIntersecting2$ = isIntersecting$.pipe(startWith(true), distinctUntilChanged());
 
           const img$ = combineLatest(url$, isIntersecting2$).pipe(
-            tap(() => this.loading.removeAttribute("hidden")),
+            takeUntil(this.subjects.disconnect),
+            tap(() => this.loading && this.loading.removeAttribute("hidden")),
             switchMap(this.makeRequest.bind(this)),
-            switchMap(this.setImgSrcAndLoad.bind(this)),
-            takeUntil(this.subjects.disconnect)
+            switchMap(this.setImgSrcAndLoad.bind(this))
           );
 
-          // ### Subscriptions
-          sizerStyle$.subscribe(styles =>
-            Object.assign(this.sizer.style, { position: "relative" }, styles)
-          );
+          // #### Subscriptions
+          // Keep the width/height of the sizer upated.
+          sizerStyle$.subscribe(this.updateSizerStyle.bind(this));
 
-          // Whenever the object URL changes, we set the new image src.
+          // Whenever the object URL changes, we set the new image source.
           img$.subscribe(
             () =>
               requestAnimationFrame(() => {
@@ -262,7 +216,10 @@ export const imageMixin = C =>
       });
     }
 
-    selectImgURL([{ contentRect: { width } }, srcsetObj]) {
+    selectImgURL([intersectionEntry, srcsetObj]) {
+      const {
+        contentRect: { width },
+      } = intersectionEntry;
       return new URL(
         srcsetObj.select(width || window.screen.width, window.devicePixelRatio || 1),
         window.location
@@ -308,10 +265,6 @@ export const imageMixin = C =>
        */
     }
 
-    loadImage() {
-      this.loadImage$.next(true);
-    }
-
     loadImageFallback() {
       if (this.el.hasAttribute("sizes")) this.img.setAttribute("sizes", this.getAttribute("sizes"));
       if (this.el.hasAttribute("crossorigin"))
@@ -330,6 +283,43 @@ export const imageMixin = C =>
       });
     }
 
+    updateSizerStyle([intersectionEntry, width, height]) {
+      const {
+        contentRect: { width: contentWidth },
+      } = intersectionEntry;
+
+      if (hasCSSOM) this.sizer.attributeStyleMap.set("position", "relative");
+      else this.sizer.style.position = "relative";
+
+      if (width != null && height != null) {
+        if (width >= contentWidth) {
+          if (hasCSSOM) {
+            this.sizer.attributeStyleMap.set("width", CSS.percent(100));
+            this.sizer.attributeStyleMap.set("padding-top", CSS.percent(height / width * 100));
+          } else {
+            this.sizer.style.width = "100%";
+            this.sizer.style.paddingTop = `${height / width * 100}%`;
+          }
+        } else {
+          if (hasCSSOM) {
+            this.sizer.attributeStyleMap.set("width", CSS.px(width));
+            this.sizer.attributeStyleMap.set("height", CSS.px(height));
+          } else {
+            this.sizer.style.width = `${width}px`;
+            this.sizer.style.height = `${height}px`;
+          }
+        }
+      } else {
+        if (hasCSSOM) {
+          this.sizer.attributeStyleMap.set("width", CSS.percent(100));
+          this.sizer.attributeStyleMap.set("height", CSS.percent(100));
+        } else {
+          this.sizer.style.width = "100%";
+          this.sizer.style.height = "100%";
+        }
+      }
+    }
+
     disconnectComponent() {
       super.disconnectComponent();
 
@@ -339,5 +329,10 @@ export const imageMixin = C =>
           URL.revokeObjectURL(objURL);
         });
       }
+    }
+
+    // ## Methods
+    loadImage() {
+      this.loadImage$.next(true);
     }
   };

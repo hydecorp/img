@@ -18,13 +18,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## Licenses
 Parts of this program are provided under separate licenses.
 
-### smoothState
-This software also uses portions of the smoothState project,
-which is MIT licensed with the following copyright
+### AMP
+This software also uses portions of the AMP project,
+which is Apache-2.0 licensed with the following copyright
 
-> Copyright (c) 2014 Miguel Angel Perez
+> Copyright 2015 The AMP HTML Authors. All Rights Reserved.
 
-A copy of the [MIT] license is provided as part of this distribution.
+Changes: Removed dev/user assertions.
+No `NOTICE` file was provided.
+
+A copy of the [Apache-2.0] license is provided as part of this distribution.
 
 ### rxjs
 This software also uses portions of the rxjs project,
@@ -44,17 +47,6 @@ MIT licensed with the following copyright:
 > Copyright (c) 2014-2016 Denis Pushkarev
 
 A copy of the [MIT] license is provided as part of this distribution.
-
-### DOM-URL-Polyfill
-This software also uses portions of the DOM-URL-Polyfill project, which is
-which is Apache-2.0 licensed with the following copyright
-
-> Copyright 2013 Erik Arvidsson
-
-No substantial changes to the software were made.
-No `NOTICE` file was provided.
-
-A copy of the [Apache-2.0] license is provided as part of this distribution.
 
 ### hy-component
 This software also uses portions of the hy-component project,
@@ -85,14 +77,6 @@ This software also uses portions of the jQuery project,
 which is MIT licensed with the following copyright
 
 > Copyright JS Foundation and other contributors, https://js.foundation/
-
-A copy of the [MIT] license is provided as part of this distribution.
-
-### Bootstrap
-This software also uses portions of the Bootstrap project,
-which is MIT licensed with the following copyright
-
-> Copyright 2011-2015 Twitter, Inc.
 
 A copy of the [MIT] license is provided as part of this distribution.
 
