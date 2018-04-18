@@ -16,7 +16,7 @@
     "watch:src": "webpack --progress --colors --watch --env dev",
     "watch:doc": "npm run build:doc && onchange 'src/**/*.js' -- npm run build:doc '{{changed}}'",
     "serve": "http-server -s -p $npm_package_config_port",
-    "dev": "npm run watch & npm run serve",
+    "dev": "npm run watch:src & npm run serve",
     "prepublishOnly": "npm run test && npm run clean && npm run build",
     "version": "npm run format && npm run build:doc && git add ."
   },
