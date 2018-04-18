@@ -33,7 +33,7 @@ import { ajax } from "rxjs/_esm5/observable/dom/ajax";
 import { distinctUntilChanged } from "rxjs/_esm5/operators/distinctUntilChanged";
 import { distinctUntilKeyChanged } from "rxjs/_esm5/operators/distinctUntilKeyChanged";
 import { filter } from "rxjs/_esm5/operators/filter";
-import { finalize } from "rxjs/_esm5/operators/finalize";
+/* import { finalize } from "rxjs/_esm5/operators/finalize"; */
 import { map } from "rxjs/_esm5/operators/map";
 import { merge } from "rxjs/_esm5/operators/merge";
 import { share } from "rxjs/_esm5/operators/share";
@@ -216,6 +216,7 @@ export const imageMixin = C =>
           const isIntersecting2$ = isIntersecting$.pipe(startWith(true), distinctUntilChanged());
 
           const img$ = combineLatest(url$, isIntersecting2$).pipe(
+            tap(() => this.loading.removeAttribute("hidden")),
             switchMap(this.makeRequest.bind(this)),
             switchMap(this.setImgSrcAndLoad.bind(this)),
             takeUntil(this.subjects.disconnect)
