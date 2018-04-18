@@ -20,7 +20,7 @@ import { imageMixin } from "../mixin";
 
 const define = () => {
   customElements.define(
-    "shy-img",
+    "hy-img",
     class extends customElementMixin(imageMixin(CustomElement)) {
       static get observedAttributes() {
         return this.getObservedAttributes();

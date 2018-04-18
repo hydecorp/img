@@ -101,7 +101,7 @@ export const MIXIN_FEATURE_TESTS = new Set([
 export const imageMixin = C =>
   class extends rxjsMixin(componentMixin(C)) {
     static get componentName() {
-      return "shy-img";
+      return "hy-img";
     }
 
     static get defaults() {
@@ -161,7 +161,7 @@ export const imageMixin = C =>
       this.el.appendChild(this.sizer);
 
       requestIdleCallback(() => {
-        // TODO: This triggers are layout event for every shy-img,
+        // TODO: This triggers are layout event for every hy-img,
         // but we need to get the width of the image somehow.
         const initialRect = { contentRect: this.el.getBoundingClientRect() };
 

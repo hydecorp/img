@@ -30,7 +30,7 @@ JQUERY_FEATURE_TESTS.delete("customevent");
 export { Set };
 
 defineJQueryComponent(
-  "shy.img",
+  "hy.img",
   class extends imageMixin(JQueryComponent) {
     setupShadowDOM($el) {
       return $el;

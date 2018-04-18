@@ -5,10 +5,10 @@
 * [Events](events.md){:.flip-title}
 
 <!-- ## Usage
-The most straight-forward way to use **hy-push-state** is by using the vanilla JS version and load it from a CDN:
+The most straight-forward way to use **hy-img** is by using the vanilla JS version and load it from a CDN:
 
 ~~~html
-<script src="https://unpkg.com/hy-push-state/dist/vanilla/hy-push-state.min.js"></script>
+<script src="https://unpkg.com/hy-img/dist/vanilla/hy-img.min.js"></script>
 ~~~
 
 ~~~html

@@ -1,6 +1,6 @@
 # License
 
-**shy-img** is licensed under [GPL-3.0](../LICENSE.md).
+**hy-img** is licensed under [GPL-3.0](../LICENSE.md).
 Commercial licenses will be available once the API stabilizes.
 
 <!-- |              | Personal           | Startup            | Enterprise         |
@@ -11,11 +11,11 @@ Commercial licenses will be available once the API stabilizes.
 | | [**Buy**][bp]{:.gumroad-button} | [**Buy**][bs]{:.gumroad-button} | [**Buy**][be]{:.gumroad-button} |
 {:.stretch-table} -->
 
-<!-- Unless you've obtained one of the licenses above, **hy-push-state** must be used in accordance with the [GPL-3.0](../LICENSE.md) license. -->
+<!-- Unless you've obtained one of the licenses above, **hy-img** must be used in accordance with the [GPL-3.0](../LICENSE.md) license. -->
 
 [pl]: personal.md
 [sl]: startup.md
 [el]: enterprise.md
-[bp]: https://gumroad.com/l/hy-push-state-personal
-[bs]: https://gumroad.com/l/hy-push-state-startup
-[be]: https://gumroad.com/l/hy-push-state-enterprise
+[bp]: https://gumroad.com/l/hy-img-personal
+[bs]: https://gumroad.com/l/hy-img-startup
+[be]: https://gumroad.com/l/hy-img-enterprise

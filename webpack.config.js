@@ -15,7 +15,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const { name: filename } = require("./package.json");
 
-const min = env === "prod" ? ".min" : "";
+const min = env === "prod" ? "" : ".dev";
 const library = camelcase(filename);
 const banner = readFileSync(resolve("./header.txt"), "utf-8");
 
@@ -28,13 +28,12 @@ function envConfig() {
         plugins: [
           new BannerPlugin({ banner }),
           new EnvironmentPlugin({ DEBUG: false }),
-          new UglifyJsPlugin(),
+          new UglifyJsPlugin({ sourceMap: true }),
         ],
       };
 
     default:
       return {
-        devtool: "source-map",
         plugins: [new EnvironmentPlugin({ DEBUG: true })],
       };
   }
@@ -42,6 +41,7 @@ function envConfig() {
 
 const baseConfig = merge(
   {
+    devtool: "source-map",
     output: {
       filename: `index${min}.js`,
       library,
