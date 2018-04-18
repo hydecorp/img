@@ -93,13 +93,9 @@ function isExternal({ protocol, host }, location = window.location) {
 // A set of [Modernizr] tests that are required for this component to work.
 export const MIXIN_FEATURE_TESTS = new Set([
   ...COMPONENT_FEATURE_TESTS,
-  // 'eventlistener',
+  "eventlistener",
   "queryselector",
-  // 'requestanimationframe',
-  // 'classlist',
-  // 'opacity',
-  // 'csstransforms',
-  // 'csspointerevents',
+  "requestanimationframe",
 ]);
 
 export const imageMixin = C =>
@@ -307,12 +303,9 @@ export const imageMixin = C =>
         x == null || x === false
           ? this.img.removeAttribute(name)
           : this.img.setAttribute(name, x === true ? "" : x);
+      /* return x => (x == null ? this.img.removeAttribute(name) : this.img.setAttribute(name, x));
+       */
     }
-
-    /*
-      const updateAttr2 = name => x =>
-        x == null ? this.img.removeAttribute(name) : this.img.setAttribute(name, x);
-      */
 
     loadImage() {
       this.loadImage$.next(true);
