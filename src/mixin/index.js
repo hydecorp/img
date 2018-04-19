@@ -220,6 +220,7 @@ export const imageMixin = C =>
       const {
         contentRect: { width },
       } = intersectionEntry;
+
       return new URL(
         srcsetObj.select(width || window.screen.width, window.devicePixelRatio || 1),
         window.location
@@ -288,31 +289,30 @@ export const imageMixin = C =>
         contentRect: { width: contentWidth },
       } = intersectionEntry;
 
-      if (hasCSSOM) this.sizer.attributeStyleMap.set("position", "relative");
-      else this.sizer.style.position = "relative";
-
-      if (width != null && height != null) {
-        if (width >= contentWidth) {
-          if (hasCSSOM) {
+      if (hasCSSOM) {
+        this.sizer.attributeStyleMap.set("position", "relative");
+        if (width != null && height != null) {
+          if (width >= contentWidth) {
             this.sizer.attributeStyleMap.set("width", CSS.percent(100));
             this.sizer.attributeStyleMap.set("padding-top", CSS.percent(height / width * 100));
           } else {
-            this.sizer.style.width = "100%";
-            this.sizer.style.paddingTop = `${height / width * 100}%`;
-          }
-        } else {
-          if (hasCSSOM) {
             this.sizer.attributeStyleMap.set("width", CSS.px(width));
             this.sizer.attributeStyleMap.set("height", CSS.px(height));
+          }
+        } else {
+          this.sizer.attributeStyleMap.set("width", CSS.percent(100));
+          this.sizer.attributeStyleMap.set("height", CSS.percent(100));
+        }
+      } else {
+        this.sizer.style.position = "relative";
+        if (width != null && height != null) {
+          if (width >= contentWidth) {
+            this.sizer.style.width = "100%";
+            this.sizer.style.paddingTop = `${height / width * 100}%`;
           } else {
             this.sizer.style.width = `${width}px`;
             this.sizer.style.height = `${height}px`;
           }
-        }
-      } else {
-        if (hasCSSOM) {
-          this.sizer.attributeStyleMap.set("width", CSS.percent(100));
-          this.sizer.attributeStyleMap.set("height", CSS.percent(100));
         } else {
           this.sizer.style.width = "100%";
           this.sizer.style.height = "100%";
