@@ -136,9 +136,9 @@ export const imageMixin = C =>
             ? createResizeObservable(this.el).pipe(startWith(initialRect))
             : of(initialRect);
 
-        const sizerStyle$ = combineLatest(resize$, this.subjects.width, this.subjects.height).pipe(
-          takeUntil(this.subjects.disconnect)
-        );
+        const sizerStyle$ = combineLatest(resize$, this.subjects.width, this.subjects.height)
+          .pipe(takeUntil(this.subjects.disconnect))
+          .subscribe(this.updateSizerStyle.bind(this));
 
         const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
           takeUntil(this.subjects.disconnect),
@@ -178,9 +178,6 @@ export const imageMixin = C =>
           );
 
           // #### Subscriptions
-          // Keep the width/height of the sizer upated.
-          sizerStyle$.subscribe(this.updateSizerStyle.bind(this));
-
           // Whenever the object URL changes, we set the new image source.
           img$.subscribe(
             () =>
