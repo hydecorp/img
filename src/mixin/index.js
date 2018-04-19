@@ -184,6 +184,7 @@ export const imageMixin = C =>
               requestAnimationFrame(() => {
                 if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
                 if (this.img.parentNode == null) this.el.appendChild(this.img);
+                this.fireEvent("load");
               }),
 
             // In case of an error, we just set all the original attributes on the image
@@ -278,6 +279,7 @@ export const imageMixin = C =>
       requestAnimationFrame(() => {
         if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
         if (this.img.parentNode == null) this.el.appendChild(this.img);
+        this.fireEvent("load");
       });
     }
 
