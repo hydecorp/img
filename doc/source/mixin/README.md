@@ -160,9 +160,9 @@ but we need to get the width of the image somehow.
             ? createResizeObservable(this.el).pipe(startWith(initialRect))
             : of(initialRect);
 
-        const sizerStyle$ = combineLatest(resize$, this.subjects.width, this.subjects.height).pipe(
-          takeUntil(this.subjects.disconnect)
-        );
+        const sizerStyle$ = combineLatest(resize$, this.subjects.width, this.subjects.height)
+          .pipe(takeUntil(this.subjects.disconnect))
+          .subscribe(this.updateSizerStyle.bind(this));
 
         const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
           takeUntil(this.subjects.disconnect),
@@ -208,13 +208,6 @@ TODO: polyfill?
 ```
 
 #### Subscriptions
-Keep the width/height of the sizer upated.
-
-
-```js
-          sizerStyle$.subscribe(this.updateSizerStyle.bind(this));
-```
-
 Whenever the object URL changes, we set the new image source.
 
 
