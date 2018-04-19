@@ -45,15 +45,15 @@ Commercial licenses will be available once the API stabilizes.
 The most straight-forward way to use **hy-img** is by using the vanilla JS version and load it from a CDN:
 
 ~~~html
-<script src="https://unpkg.com/hy-push-state/dist/vanilla/hy-push-state.min.js"></script>
+<script src="https://unpkg.com/hy-img/dist/vanilla/hy-img.min.js"></script>
 ~~~
 
 ~~~html
-<hy-img>
+<shy-img>
   <noscript>
     <img src="..." srcset="..." alt="..." />
   </noscript>
-</hy-img>
+</shy-img>
 ~~~
 
 This assumes all pages have an element with `id="pushStateEl"`, which will be used for replacement.

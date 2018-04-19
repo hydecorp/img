@@ -17,16 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ```js
 
-import {
-  customElementMixin,
-  CustomElement
-} from "hy-component/src/custom-element";
+import { customElementMixin, CustomElement } from "hy-component/src/custom-element";
 
 import { imageMixin } from "../mixin";
 
 const define = () => {
   customElements.define(
-    "shy-img",
+    "hy-img",
     class extends customElementMixin(imageMixin(CustomElement)) {
       static get observedAttributes() {
         return this.getObservedAttributes();
@@ -43,17 +40,12 @@ Make sure the polyfills are ready (if they are being used).
 
 
 ```js
-if (
-  "customElements" in window ||
-  (window.WebComponents && window.WebComponents.ready)
-) {
+if ("customElements" in window || (window.WebComponents && window.WebComponents.ready)) {
   define();
 } else if (window.WebComponents) {
   window.addEventListener("WebComponentsReady", define);
 } else if (process.env.DEBUG) {
-  console.warn(
-    "Couldn't register component. Did you forget to include a WebComponents polyfill?"
-  );
+  console.warn("Couldn't register component. Did you forget to include a WebComponents polyfill?");
 }
 ```
 

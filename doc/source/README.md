@@ -27,7 +27,7 @@ export {
   ShyImage,
   VANILLA_FEATURE_TESTS,
   ShyImageElement,
-  WEBCOMPONENT_FEATURE_TESTS
+  WEBCOMPONENT_FEATURE_TESTS,
 };
 ```
 

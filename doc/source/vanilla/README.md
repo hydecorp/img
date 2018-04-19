@@ -27,7 +27,7 @@ export const VANILLA_FEATURE_TESTS = MIXIN_FEATURE_TESTS;
 
 export { Set };
 
-export class ShyImage extends imageMixin(VanillaComponent) {}
+export class HyImage extends imageMixin(VanillaComponent) {}
 ```
 
 
