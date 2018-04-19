@@ -5,20 +5,21 @@
   "main": "src/index.js",
   "scripts": {
     "clean": "rm -rf dist lib doc/source",
-    "test": "exit 0",
+    "test": "eslint src",
     "format": "prettier --write \"src/**/*.js\"",
     "build": "npm run build:dev & npm run build:prod & npm run build:lib & npm run build:doc & wait",
     "build:lib": "babel src --out-dir lib",
     "build:prod": "webpack --env prod --display-optimization-bailout",
     "build:dev": "webpack --env dev --display-optimization-bailout",
-    "build:doc": ".scripts/gen-doc.js & .scripts/gen-readme.js & wait",
+    "build:doc": ".scripts/gen-doc.js && .scripts/gen-readme.js",
     "watch": "npm run watch:src & npm run watch:doc",
     "watch:src": "webpack --progress --colors --watch --env dev",
     "watch:doc": "npm run build:doc && onchange 'src/**/*.js' -- npm run build:doc '{{changed}}'",
     "serve": "http-server -s -p $npm_package_config_port",
     "dev": "npm run watch:src & npm run serve",
-    "prepublishOnly": "npm run test && npm run clean && npm run build",
-    "version": "npm run format && npm run build:doc && git add ."
+    "preversion": "sed -i '' 's:/dist:#/dist:' .gitignore",
+    "version": "npm run format && npm run build && git add .",
+    "postversion": "sed -i '' 's:#/dist:/dist:' .gitignore && git rm --cached -r dist && git add . && git commit -m 'restore preversion .gitignore'"
   },
   "config": {
     "port": "8082"
