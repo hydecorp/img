@@ -217,6 +217,7 @@ Whenever the object URL changes, we set the new image source.
               requestAnimationFrame(() => {
                 if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
                 if (this.img.parentNode == null) this.el.appendChild(this.img);
+                this.fireEvent("load");
               }),
 ```
 
@@ -335,6 +336,7 @@ Reflect attributes changes on the original on the inner img.
       requestAnimationFrame(() => {
         if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
         if (this.img.parentNode == null) this.el.appendChild(this.img);
+        this.fireEvent("load");
       });
     }
 
