@@ -1,7 +1,7 @@
-# hy-push-state Enterprise License
+# hy-img Enterprise License
 
 ## License Summary
-* License concerns use of [hy-push-state][1]
+* License concerns use of [hy-img][1]
 * License does not expire
 * Commercial use allowed
 * Can modify source code
@@ -13,7 +13,7 @@
 This Agreement governs the relationship between you (hereinafter: Licensee) and
 Florian Klampfer qwtel.com (hereinafter: Licensor).
 This Agreement sets the terms, rights, restrictions and obligations on using
-hy-push-state (hereinafter: The Software)
+hy-img (hereinafter: The Software)
 created and owned by Licensor, as detailed herein.
 "Licensed Developer" shall mean an individual person permitted to use the Software and make Modifications for your Applications.
 
@@ -133,4 +133,4 @@ Licensee hereby agrees not to initiate class-action lawsuits against Licensor in
 relation to this license and to compensate Licensor for any legal fees, cost or attorney fees should any claim
 brought by Licensee against Licensor be denied, in part or in full.
 
-[1]: https://qwtel.com/hy-push-state/
+[1]: https://qwtel.com/hy-img/

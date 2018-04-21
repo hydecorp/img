@@ -2,10 +2,10 @@
 sitemap: false
 ---
 
-# PRO–hy-push-state License
+# PRO–hy-img License
 
 ## License Summary
-* License concerns use of [hy-push-state][1]
+* License concerns use of [hy-img][1]
 * License does not expire
 * Commercial use allowed
 * Can modify source code
@@ -17,7 +17,7 @@ sitemap: false
 This Agreement governs the relationship between you (hereinafter: Licensee) and
 Florian Klampfer qwtel.com (hereinafter: Licensor).
 This Agreement sets the terms, rights, restrictions and obligations on using
-hy-push-state (hereinafter: The Software)
+hy-img (hereinafter: The Software)
 created and owned by Licensor, as detailed herein.
 
 ### 2. License Grant
@@ -136,5 +136,5 @@ Licensee hereby agrees not to initiate class-action lawsuits against Licensor in
 relation to this license and to compensate Licensor for any legal fees, cost or attorney fees should any claim
 brought by Licensee against Licensor be denied, in part or in full.
 
-[1]: https://qwtel.com/hy-push-state/
+[1]: https://qwtel.com/hy-img/
 [2]: https://qwtel.com/hydejack/
