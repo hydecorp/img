@@ -20,11 +20,6 @@ import { dev, user } from "./log";
 /**
  * A single source within a srcset. Only one: width or DPR can be specified at
  * a time.
- * @typedef {{
- *   url: string,
- *   width: (number|undefined),
- *   dpr: (number|undefined)
- * }}
  */
 let SrcsetSourceDef;
 
