@@ -1,10 +1,131 @@
 # Options
-This component offers a variety of configuration options,
-the purpose of many of which is to allow you to custom-tailor its behavior to fit within the norms of a particular platform/browser,
-without hard-coding any user-agent sniffing into of the component itself.
 
 * toc
 {:toc}
+
+## `src`
+TODO
+
+Type
+: `String` (URL)
+
+Default
+: `null`
+
+HTML attribute
+: `root-margin`
+
+jQuery attribute
+: `data-root-margin`
+
+***
+
+## `srcset`
+TODO
+
+Type
+: `String` (valid `<img/>` srcset value)
+
+Default
+: `null`
+
+HTML attribute
+: `root-margin`
+
+jQuery attribute
+: `data-root-margin`
+
+***
+
+## `width`
+The width of the requested image. This doesn't necessarily have to be the actual width of the image, since it is only used to calculate the aspect ratio of the placeholder.
+However, if the provided `width` is lower than the width available to the parent `hy-img` component, `width` will be used to set the size of the placeholder directly (in px).
+
+Type
+: `Number` (in px)
+
+Default
+: `null`
+
+HTML attribute
+: `width`
+
+jQuery attribute
+: `data-width`
+
+***
+
+## `height`
+The height of the requested image. This doesn't necessarily have to be the actual height of the image, since it is only used to calculate the aspect ratio of the placeholder.
+However, if the provided `width` (no typo!) is lower than the width available to the parent `hy-img` component, `height` will be used to set the size of the placeholder directly (in px).
+
+Type
+: `Number` (in px)
+
+Default
+: `null`
+
+HTML attribute
+: `height`
+
+jQuery attribute
+: `data-height`
+
+***
+
+## `root`
+Specifies which scrollable element will trigger loading the image.
+When no value is provided, it will default to the document (same as intersection observer).
+
+Passes on the value to the `root` option of the underlying `IntersectionObserver`.
+
+Type
+: `String` (CSS Selector)
+
+Default
+: `null`
+
+HTML attribute
+: `root`
+
+jQuery attribute
+: `data-root`
+
+***
+
+## `rootMargin`
+Passes on the value to the `rootMargin` option of the underlying `IntersectionObserver`.
+
+Type
+: `String` (CSS Position String, e.g. `0px`, or `100px 150px 200px`)
+
+Default
+: `0px`
+
+HTML attribute
+: `root-margin`
+
+jQuery attribute
+: `data-root-margin`
+
+***
+
+## `alt`
+An textual description of the image. Same as image alt text.
+Will be passed on to the `alt` attribute of the underlying `img` tag.
+
+***
+
+## `decoding`
+Will be passed on to the `decoding` attribute of the underlying `img` tag.
+
+***
+
+## `longdesc`
+Will be passed on to the `longdesc` attribute of the underlying `img` tag.
+
+<!-- ## `ismap`
+## `usemap` -->
 
 <!-- ## `replaceIds`
 An array of HTML `id`s, that are children of this component,

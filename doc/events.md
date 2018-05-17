@@ -5,21 +5,20 @@ Note that --- to be an idiomatic WebComponent --- all communication form the com
 * toc
 {:toc}
 
-<!-- ## `hy-push-state-init`
+## `hy-img-init`
 This event is fired whenever the component gets attached to the DOM.
 
 jQuery event name
-: `init.hy.pushstate`
+: `init.hy.img`
 
 ***
 
-## `hy-push-state-load`
-This event is fired after every dynamic page load, including the initial page load.
+## `hy-img-load`
 
 jQuery event name
-: `load.hy.pushstate`
+: `load.hy.img`
 
-***
+<!-- ***
 
 ## `hy-push-state-start`
 This event is fired at the beginning of every page transition, after the user clicks a link,
