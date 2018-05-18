@@ -237,6 +237,7 @@ export const imageMixin = C =>
           responseType: "blob",
           url,
           crossDomain: isExternal(url),
+          headers: { Accept: "image/*" },
         }).pipe(
           map(({ response }) => URL.createObjectURL(response)),
           tap(objectURL => cache.set(href, objectURL))
