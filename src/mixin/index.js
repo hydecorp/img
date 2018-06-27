@@ -153,58 +153,66 @@ export const imageMixin = C =>
           share()
         );
 
-        isIntersecting$.pipe(filter(x => x), distinctUntilChanged()).subscribe(() => {
-          // TODO: polyfill?
-          const cache = (this.cache = new Map());
+        isIntersecting$
+          .pipe(
+            filter(x => x),
+            distinctUntilChanged()
+          )
+          .subscribe(() => {
+            // TODO: polyfill?
+            const cache = (this.cache = new Map());
 
-          const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
-            filter(([a, b]) => a != null || b != null),
-            distinctUntilChanged(([p1, p2], [q1, q2]) => p1 === q1 && p2 === q2),
-            map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
-          );
+            const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
+              filter(([a, b]) => a != null || b != null),
+              distinctUntilChanged(([p1, p2], [q1, q2]) => p1 === q1 && p2 === q2),
+              map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
+            );
 
-          const url$ = combineLatest(resize$, srcset$).pipe(
-            map(this.selectImgURL.bind(this)),
-            distinctUntilKeyChanged("href")
-          );
+            const url$ = combineLatest(resize$, srcset$).pipe(
+              map(this.selectImgURL.bind(this)),
+              distinctUntilKeyChanged("href")
+            );
 
-          const isIntersecting2$ = isIntersecting$.pipe(startWith(true), distinctUntilChanged());
+            const isIntersecting2$ = isIntersecting$.pipe(
+              startWith(true),
+              distinctUntilChanged()
+            );
 
-          const img$ = combineLatest(url$, isIntersecting2$).pipe(
-            takeUntil(this.subjects.disconnect),
-            tap(() => this.loading && this.loading.removeAttribute("hidden")),
-            switchMap(this.makeRequest.bind(this)),
-            switchMap(this.setImgSrcAndLoad.bind(this))
-          );
+            const img$ = combineLatest(url$, isIntersecting2$).pipe(
+              takeUntil(this.subjects.disconnect),
+              tap(() => this.loading && this.loading.removeAttribute("hidden")),
+              switchMap(this.makeRequest.bind(this)),
+              switchMap(this.setImgSrcAndLoad.bind(this))
+            );
 
-          // #### Subscriptions
-          // Whenever the object URL changes, we set the new image source.
-          img$.subscribe(
-            () =>
-              requestAnimationFrame(() => {
-                if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
-                if (this.img.parentNode == null) this.el.appendChild(this.img);
-                this.fireEvent("load");
-              }),
+            // #### Subscriptions
+            // Whenever the object URL changes, we set the new image source.
+            img$.subscribe(
+              () =>
+                requestAnimationFrame(() => {
+                  if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
+                  if (this.img.parentNode == null) this.el.appendChild(this.img);
+                  this.fireEvent("load");
+                }),
 
-            // In case of an error, we just set all the original attributes on the image
-            // and let the browser handle the rest.
-            err => {
-              if (process.env.DEBUG) console.error(err);
-              this.loadImageFallback();
-            }
-          );
+              // In case of an error, we just set all the original attributes on the image
+              // and let the browser handle the rest.
+              err => {
+                if (process.env.DEBUG) console.error(err);
+                this.loadImageFallback();
+              }
+            );
 
-          // Keeping other properties up-to-date.
-          this.updateAttr = this.updateAttr.bind(this);
-          this.subjects.alt.subscribe(this.updateAttr("alt"));
-          this.subjects.decoding.subscribe(this.updateAttr("decoding"));
-          this.subjects.longdesc.subscribe(this.updateAttr("longdesc"));
+            // Keeping other properties up-to-date.
+            this.updateAttr = this.updateAttr.bind(this);
+            this.subjects.alt.subscribe(this.updateAttr("alt"));
+            this.subjects.decoding.subscribe(this.updateAttr("decoding"));
+            this.subjects.longdesc.subscribe(this.updateAttr("longdesc"));
 
-          /* TODO: necessary? */
-          this.subjects.ismap.subscribe(this.updateAttr("ismap"));
-          this.subjects.usemap.subscribe(this.updateAttr("usemap"));
-        });
+            /* TODO: necessary? */
+            this.subjects.ismap.subscribe(this.updateAttr("ismap"));
+            this.subjects.usemap.subscribe(this.updateAttr("usemap"));
+          });
 
         // TODO: meh..
         super.connectComponent();
@@ -294,7 +302,7 @@ export const imageMixin = C =>
         if (width != null && height != null) {
           if (width >= contentWidth) {
             this.sizer.attributeStyleMap.set("width", CSS.percent(100));
-            this.sizer.attributeStyleMap.set("padding-top", CSS.percent(height / width * 100));
+            this.sizer.attributeStyleMap.set("padding-top", CSS.percent((height / width) * 100));
           } else {
             this.sizer.attributeStyleMap.set("width", CSS.px(width));
             this.sizer.attributeStyleMap.set("height", CSS.px(height));
@@ -308,7 +316,7 @@ export const imageMixin = C =>
         if (width != null && height != null) {
           if (width >= contentWidth) {
             this.sizer.style.width = "100%";
-            this.sizer.style.paddingTop = `${height / width * 100}%`;
+            this.sizer.style.paddingTop = `${(height / width) * 100}%`;
           } else {
             this.sizer.style.width = `${width}px`;
             this.sizer.style.height = `${height}px`;
