@@ -9,3 +9,7 @@ deploy:
   on:
     tags: true
     repo: qwtel/hy-img
+notifications:
+  email:
+    on_success: never
+    on_failure: always
