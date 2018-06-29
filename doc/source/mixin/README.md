@@ -23,25 +23,20 @@ import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/c
 import { rxjsMixin } from "hy-component/src/rxjs";
 import { arrayOf, bool, oneOf, number, string } from "hy-component/src/types";
 
-import { Subject } from "rxjs/_esm5/Subject";
-
-import { combineLatest } from "rxjs/_esm5/observable/combineLatest";
-import { fromEvent } from "rxjs/_esm5/observable/fromEvent";
-import { never } from "rxjs/_esm5/observable/never";
-import { of } from "rxjs/_esm5/observable/of";
-
-import { ajax } from "rxjs/_esm5/observable/dom/ajax";
-
-import { distinctUntilChanged } from "rxjs/_esm5/operators/distinctUntilChanged";
-import { distinctUntilKeyChanged } from "rxjs/_esm5/operators/distinctUntilKeyChanged";
-import { filter } from "rxjs/_esm5/operators/filter";
-import { map } from "rxjs/_esm5/operators/map";
-import { merge } from "rxjs/_esm5/operators/merge";
-import { share } from "rxjs/_esm5/operators/share";
-import { startWith } from "rxjs/_esm5/operators/startWith";
-import { switchMap } from "rxjs/_esm5/operators/switchMap";
-import { takeUntil } from "rxjs/_esm5/operators/takeUntil";
-import { tap } from "rxjs/_esm5/operators/tap";
+import { Subject, combineLatest, fromEvent, never, of } from "rxjs/_esm5";
+import { ajax } from "rxjs/_esm5/ajax";
+import {
+  distinctUntilChanged,
+  distinctUntilKeyChanged,
+  filter,
+  map,
+  merge,
+  share,
+  startWith,
+  switchMap,
+  takeUntil,
+  tap,
+} from "rxjs/_esm5/operators";
 
 import {
   hasCSSOM,
