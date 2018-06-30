@@ -20,14 +20,13 @@ import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/c
 import { rxjsMixin } from "hy-component/src/rxjs";
 import { arrayOf, bool, oneOf, number, string } from "hy-component/src/types";
 
-import { Subject, combineLatest, fromEvent, never, of } from "rxjs/_esm5";
+import { Subject, combineLatest, fromEvent, merge, never, of } from "rxjs/_esm5";
 import { ajax } from "rxjs/_esm5/ajax";
 import {
   distinctUntilChanged,
   distinctUntilKeyChanged,
   filter,
   map,
-  merge,
   share,
   startWith,
   switchMap,
@@ -126,14 +125,16 @@ export const imageMixin = C =>
         // but we need to get the width of the image somehow.
         const initialRect = { contentRect: this.el.getBoundingClientRect() };
 
-        const resize$ =
+        this.resize$ =
           "ResizeObserver" in window
             ? createResizeObservable(this.el).pipe(startWith(initialRect))
             : of(initialRect);
 
-        const sizerStyle$ = combineLatest(resize$, this.subjects.width, this.subjects.height)
-          .pipe(takeUntil(this.subjects.disconnect))
-          .subscribe(this.updateSizerStyle.bind(this));
+        const sizerStyle$ = combineLatest(
+          this.resize$,
+          this.subjects.width,
+          this.subjects.height
+        ).pipe(takeUntil(this.subjects.disconnect));
 
         const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
           takeUntil(this.subjects.disconnect),
@@ -143,71 +144,16 @@ export const imageMixin = C =>
                 ? createIntersectionObservable(this.el, { root, rootMargin })
                 : of({ isIntersecting: true })
           ),
-          map(({ isIntersecting }) => isIntersecting),
-          merge(this.loadImage$),
+          map(({ isIntersecting }) => isIntersecting)
+        );
+
+        this.trigger$ = merge(isIntersecting$, this.loadImage$).pipe(
+          distinctUntilChanged(),
           share()
         );
 
-        isIntersecting$
-          .pipe(
-            filter(x => x),
-            distinctUntilChanged()
-          )
-          .subscribe(() => {
-            // TODO: polyfill?
-            const cache = (this.cache = new Map());
-
-            const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
-              filter(([a, b]) => a != null || b != null),
-              distinctUntilChanged(([p1, p2], [q1, q2]) => p1 === q1 && p2 === q2),
-              map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
-            );
-
-            const url$ = combineLatest(resize$, srcset$).pipe(
-              map(this.selectImgURL.bind(this)),
-              distinctUntilKeyChanged("href")
-            );
-
-            const isIntersecting2$ = isIntersecting$.pipe(
-              startWith(true),
-              distinctUntilChanged()
-            );
-
-            const img$ = combineLatest(url$, isIntersecting2$).pipe(
-              takeUntil(this.subjects.disconnect),
-              tap(() => this.loading && this.loading.removeAttribute("hidden")),
-              switchMap(this.makeRequest.bind(this)),
-              switchMap(this.setImgSrcAndLoad.bind(this))
-            );
-
-            // #### Subscriptions
-            // Whenever the object URL changes, we set the new image source.
-            img$.subscribe(
-              () =>
-                requestAnimationFrame(() => {
-                  if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
-                  if (this.img.parentNode == null) this.el.appendChild(this.img);
-                  this.fireEvent("load");
-                }),
-
-              // In case of an error, we just set all the original attributes on the image
-              // and let the browser handle the rest.
-              err => {
-                if (process.env.DEBUG) console.error(err);
-                this.loadImageFallback();
-              }
-            );
-
-            // Keeping other properties up-to-date.
-            this.updateAttr = this.updateAttr.bind(this);
-            this.subjects.alt.subscribe(this.updateAttr("alt"));
-            this.subjects.decoding.subscribe(this.updateAttr("decoding"));
-            this.subjects.longdesc.subscribe(this.updateAttr("longdesc"));
-
-            /* TODO: necessary? */
-            this.subjects.ismap.subscribe(this.updateAttr("ismap"));
-            this.subjects.usemap.subscribe(this.updateAttr("usemap"));
-          });
+        sizerStyle$.subscribe(this.updateSizerStyle.bind(this));
+        this.trigger$.pipe(filter(x => x)).subscribe(this.triggered.bind(this));
 
         // TODO: meh..
         super.connectComponent();
@@ -215,6 +161,60 @@ export const imageMixin = C =>
         // Firing an event to let the outside world know the drawer is ready.
         this.fireEvent("init");
       });
+    }
+
+    triggered() {
+      // TODO: polyfill?
+      const cache = (this.cache = new Map());
+
+      const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
+        filter(([a, b]) => a != null || b != null),
+        distinctUntilChanged(([p1, p2], [q1, q2]) => p1 === q1 && p2 === q2),
+        map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
+      );
+
+      const url$ = combineLatest(this.resize$, srcset$).pipe(
+        map(this.selectImgURL.bind(this)),
+        distinctUntilKeyChanged("href")
+      );
+
+      const isIntersecting2$ = this.trigger$.pipe(startWith(true));
+
+      const img$ = combineLatest(url$, isIntersecting2$).pipe(
+        takeUntil(this.subjects.disconnect),
+        tap(() => this.loading && this.loading.removeAttribute("hidden")),
+        switchMap(this.makeRequest.bind(this)),
+        switchMap(this.setImgSrcAndLoad.bind(this))
+      );
+
+      // #### Subscriptions
+      // Whenever the object URL changes, we set the new image source.
+      img$.subscribe(
+        () =>
+          // TODO: use scheduler
+          requestAnimationFrame(() => {
+            if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
+            if (this.img.parentNode == null) this.el.appendChild(this.img);
+            this.fireEvent("load");
+          }),
+
+        // In case of an error, we just set all the original attributes on the image
+        // and let the browser handle the rest.
+        err => {
+          if (process.env.DEBUG) console.error(err);
+          this.loadImageFallback();
+        }
+      );
+
+      // Keeping other properties up-to-date.
+      this.updateAttr = this.updateAttr.bind(this);
+      this.subjects.alt.subscribe(this.updateAttr("alt"));
+      this.subjects.decoding.subscribe(this.updateAttr("decoding"));
+      this.subjects.longdesc.subscribe(this.updateAttr("longdesc"));
+
+      /* TODO: necessary? */
+      this.subjects.ismap.subscribe(this.updateAttr("ismap"));
+      this.subjects.usemap.subscribe(this.updateAttr("usemap"));
     }
 
     selectImgURL([intersectionEntry, srcsetObj]) {
