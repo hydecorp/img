@@ -12,6 +12,8 @@ author:
     npm: https://www.npmjs.com/package/hy-img
     download: https://github.com/qwtel/hy-img/releases
 
+logo: /assets/icons/icon.svg
+
 copyright: © 2018 Florian Klampfer
 
 permalink: pretty
@@ -47,13 +49,17 @@ exclude:
 include:
   - LICENSE.md
 
-remote_theme: qwtel/hydejack@gem-7.5.1
+remote_theme: qwtel/hydejack@v8
 
 hydejack:
   cookies_banner: true
   no_mark_external: true
 
 defaults:
+  - scope:
+      path: README.md
+    values:
+      cover: true
   - scope:
       path: doc/options.md
     values:
@@ -82,6 +88,7 @@ optional_front_matter:
 
 readme_index:
   remove_originals: true
+  with_frontmatter: true
 
 data_social:
   github:
