@@ -120,47 +120,45 @@ export const imageMixin = C =>
 
       this.el.appendChild(this.sizer);
 
-      requestIdleCallback(() => {
-        // TODO: This triggers are layout event for every hy-img,
-        // but we need to get the width of the image somehow.
-        const initialRect = { contentRect: this.el.getBoundingClientRect() };
+      // TODO: This triggers are layout event for every hy-img,
+      // but we need to get the width of the image somehow.
+      const initialRect = { contentRect: this.el.getBoundingClientRect() };
 
-        this.resize$ =
-          "ResizeObserver" in window
-            ? createResizeObservable(this.el).pipe(startWith(initialRect))
-            : of(initialRect);
+      this.resize$ =
+        "ResizeObserver" in window
+          ? createResizeObservable(this.el).pipe(startWith(initialRect))
+          : of(initialRect);
 
-        const sizerStyle$ = combineLatest(
-          this.resize$,
-          this.subjects.width,
-          this.subjects.height
-        ).pipe(takeUntil(this.subjects.disconnect));
+      const sizerStyle$ = combineLatest(
+        this.resize$,
+        this.subjects.width,
+        this.subjects.height
+      ).pipe(takeUntil(this.subjects.disconnect));
 
-        const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
-          takeUntil(this.subjects.disconnect),
-          switchMap(
-            ([root, rootMargin]) =>
-              "IntersectionObserver" in window
-                ? createIntersectionObservable(this.el, { root, rootMargin })
-                : of({ isIntersecting: true })
-          ),
-          map(({ isIntersecting }) => isIntersecting)
-        );
+      const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
+        takeUntil(this.subjects.disconnect),
+        switchMap(
+          ([root, rootMargin]) =>
+            "IntersectionObserver" in window
+              ? createIntersectionObservable(this.el, { root, rootMargin })
+              : of({ isIntersecting: true })
+        ),
+        map(({ isIntersecting }) => isIntersecting)
+      );
 
-        this.trigger$ = merge(isIntersecting$, this.loadImage$).pipe(
-          distinctUntilChanged(),
-          share()
-        );
+      this.trigger$ = merge(isIntersecting$, this.loadImage$).pipe(
+        distinctUntilChanged(),
+        share()
+      );
 
-        sizerStyle$.subscribe(this.updateSizerStyle.bind(this));
-        this.trigger$.pipe(filter(x => x)).subscribe(this.triggered.bind(this));
+      sizerStyle$.subscribe(this.updateSizerStyle.bind(this));
+      this.trigger$.pipe(filter(x => x)).subscribe(this.triggered.bind(this));
 
-        // TODO: meh..
-        super.connectComponent();
+      // TODO: meh..
+      super.connectComponent();
 
-        // Firing an event to let the outside world know the drawer is ready.
-        this.fireEvent("init");
-      });
+      // Firing an event to let the outside world know the drawer is ready.
+      this.fireEvent("init");
     }
 
     triggered() {
