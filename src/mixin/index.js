@@ -146,13 +146,16 @@ export const imageMixin = C =>
         map(({ isIntersecting }) => isIntersecting)
       );
 
-      this.trigger$ = merge(isIntersecting$, this.loadImage$).pipe(
-        distinctUntilChanged(),
-        share()
-      );
+      this.trigger$ = merge(isIntersecting$, this.loadImage$).pipe(share());
 
       sizerStyle$.subscribe(this.updateSizerStyle.bind(this));
-      this.trigger$.pipe(filter(x => x)).subscribe(this.triggered.bind(this));
+
+      this.trigger$
+        .pipe(
+          filter(x => x),
+          distinctUntilChanged()
+        )
+        .subscribe(this.triggered.bind(this));
 
       // TODO: meh..
       super.connectComponent();
@@ -176,9 +179,12 @@ export const imageMixin = C =>
         distinctUntilKeyChanged("href")
       );
 
-      const isIntersecting2$ = this.trigger$.pipe(startWith(true));
+      const isIntersecting$ = this.trigger$.pipe(
+        distinctUntilChanged(),
+        startWith(true)
+      );
 
-      const img$ = combineLatest(url$, isIntersecting2$).pipe(
+      const img$ = combineLatest(url$, isIntersecting$).pipe(
         takeUntil(this.subjects.disconnect),
         tap(() => this.loading && this.loading.removeAttribute("hidden")),
         switchMap(this.makeRequest.bind(this)),
@@ -188,13 +194,11 @@ export const imageMixin = C =>
       // #### Subscriptions
       // Whenever the object URL changes, we set the new image source.
       img$.subscribe(
-        () =>
-          // TODO: use scheduler
-          requestAnimationFrame(() => {
-            if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
-            if (this.img.parentNode == null) this.el.appendChild(this.img);
-            this.fireEvent("load");
-          }),
+        () => {
+          if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
+          if (this.img.parentNode == null) this.el.appendChild(this.img);
+          this.fireEvent("load");
+        },
 
         // In case of an error, we just set all the original attributes on the image
         // and let the browser handle the rest.
@@ -278,11 +282,9 @@ export const imageMixin = C =>
       if (this.srcset) this.img.srcset = this.srcset;
       if (this.src) this.img.src = this.src;
 
-      requestAnimationFrame(() => {
-        if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
-        if (this.img.parentNode == null) this.el.appendChild(this.img);
-        this.fireEvent("load");
-      });
+      if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
+      if (this.img.parentNode == null) this.el.appendChild(this.img);
+      this.fireEvent("load");
     }
 
     updateSizerStyle([intersectionEntry, width, height]) {

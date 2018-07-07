@@ -23,14 +23,13 @@ import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/c
 import { rxjsMixin } from "hy-component/src/rxjs";
 import { arrayOf, bool, oneOf, number, string } from "hy-component/src/types";
 
-import { Subject, combineLatest, fromEvent, never, of } from "rxjs/_esm5";
+import { Subject, combineLatest, fromEvent, merge, never, of } from "rxjs/_esm5";
 import { ajax } from "rxjs/_esm5/ajax";
 import {
   distinctUntilChanged,
   distinctUntilKeyChanged,
   filter,
   map,
-  merge,
   share,
   startWith,
   switchMap,
@@ -139,8 +138,6 @@ TODO: don't force inline styles
       else this.img.style.display = "block";
 
       this.el.appendChild(this.sizer);
-
-      requestIdleCallback(() => {
 ```
 
 TODO: This triggers are layout event for every hy-img,
@@ -148,66 +145,87 @@ but we need to get the width of the image somehow.
 
 
 ```js
-        const initialRect = { contentRect: this.el.getBoundingClientRect() };
+      const initialRect = { contentRect: this.el.getBoundingClientRect() };
 
-        const resize$ =
-          "ResizeObserver" in window
-            ? createResizeObservable(this.el).pipe(startWith(initialRect))
-            : of(initialRect);
+      this.resize$ =
+        "ResizeObserver" in window
+          ? createResizeObservable(this.el).pipe(startWith(initialRect))
+          : of(initialRect);
 
-        const sizerStyle$ = combineLatest(resize$, this.subjects.width, this.subjects.height)
-          .pipe(takeUntil(this.subjects.disconnect))
-          .subscribe(this.updateSizerStyle.bind(this));
+      const sizerStyle$ = combineLatest(
+        this.resize$,
+        this.subjects.width,
+        this.subjects.height
+      ).pipe(takeUntil(this.subjects.disconnect));
 
-        const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
-          takeUntil(this.subjects.disconnect),
-          switchMap(
-            ([root, rootMargin]) =>
-              "IntersectionObserver" in window
-                ? createIntersectionObservable(this.el, { root, rootMargin })
-                : of({ isIntersecting: true })
-          ),
-          map(({ isIntersecting }) => isIntersecting),
-          merge(this.loadImage$),
-          share()
-        );
+      const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
+        takeUntil(this.subjects.disconnect),
+        switchMap(
+          ([root, rootMargin]) =>
+            "IntersectionObserver" in window
+              ? createIntersectionObservable(this.el, { root, rootMargin })
+              : of({ isIntersecting: true })
+        ),
+        map(({ isIntersecting }) => isIntersecting)
+      );
 
-        isIntersecting$
-          .pipe(
-            filter(x => x),
-            distinctUntilChanged()
-          )
-          .subscribe(() => {
+      this.trigger$ = merge(isIntersecting$, this.loadImage$).pipe(share());
+
+      sizerStyle$.subscribe(this.updateSizerStyle.bind(this));
+
+      this.trigger$
+        .pipe(
+          filter(x => x),
+          distinctUntilChanged()
+        )
+        .subscribe(this.triggered.bind(this));
+```
+
+TODO: meh..
+
+
+```js
+      super.connectComponent();
+```
+
+Firing an event to let the outside world know the drawer is ready.
+
+
+```js
+      this.fireEvent("init");
+    }
+
+    triggered() {
 ```
 
 TODO: polyfill?
 
 
 ```js
-            const cache = (this.cache = new Map());
+      const cache = (this.cache = new Map());
 
-            const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
-              filter(([a, b]) => a != null || b != null),
-              distinctUntilChanged(([p1, p2], [q1, q2]) => p1 === q1 && p2 === q2),
-              map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
-            );
+      const srcset$ = combineLatest(this.subjects.src, this.subjects.srcset).pipe(
+        filter(([a, b]) => a != null || b != null),
+        distinctUntilChanged(([p1, p2], [q1, q2]) => p1 === q1 && p2 === q2),
+        map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src)))
+      );
 
-            const url$ = combineLatest(resize$, srcset$).pipe(
-              map(this.selectImgURL.bind(this)),
-              distinctUntilKeyChanged("href")
-            );
+      const url$ = combineLatest(this.resize$, srcset$).pipe(
+        map(this.selectImgURL.bind(this)),
+        distinctUntilKeyChanged("href")
+      );
 
-            const isIntersecting2$ = isIntersecting$.pipe(
-              startWith(true),
-              distinctUntilChanged()
-            );
+      const isIntersecting$ = this.trigger$.pipe(
+        distinctUntilChanged(),
+        startWith(true)
+      );
 
-            const img$ = combineLatest(url$, isIntersecting2$).pipe(
-              takeUntil(this.subjects.disconnect),
-              tap(() => this.loading && this.loading.removeAttribute("hidden")),
-              switchMap(this.makeRequest.bind(this)),
-              switchMap(this.setImgSrcAndLoad.bind(this))
-            );
+      const img$ = combineLatest(url$, isIntersecting$).pipe(
+        takeUntil(this.subjects.disconnect),
+        tap(() => this.loading && this.loading.removeAttribute("hidden")),
+        switchMap(this.makeRequest.bind(this)),
+        switchMap(this.setImgSrcAndLoad.bind(this))
+      );
 ```
 
 #### Subscriptions
@@ -215,13 +233,12 @@ Whenever the object URL changes, we set the new image source.
 
 
 ```js
-            img$.subscribe(
-              () =>
-                requestAnimationFrame(() => {
-                  if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
-                  if (this.img.parentNode == null) this.el.appendChild(this.img);
-                  this.fireEvent("load");
-                }),
+      img$.subscribe(
+        () => {
+          if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
+          if (this.img.parentNode == null) this.el.appendChild(this.img);
+          this.fireEvent("load");
+        },
 ```
 
 In case of an error, we just set all the original attributes on the image
@@ -229,41 +246,25 @@ and let the browser handle the rest.
 
 
 ```js
-              err => {
-                if (process.env.DEBUG) console.error(err);
-                this.loadImageFallback();
-              }
-            );
+        err => {
+          if (process.env.DEBUG) console.error(err);
+          this.loadImageFallback();
+        }
+      );
 ```
 
 Keeping other properties up-to-date.
 
 
 ```js
-            this.updateAttr = this.updateAttr.bind(this);
-            this.subjects.alt.subscribe(this.updateAttr("alt"));
-            this.subjects.decoding.subscribe(this.updateAttr("decoding"));
-            this.subjects.longdesc.subscribe(this.updateAttr("longdesc"));
+      this.updateAttr = this.updateAttr.bind(this);
+      this.subjects.alt.subscribe(this.updateAttr("alt"));
+      this.subjects.decoding.subscribe(this.updateAttr("decoding"));
+      this.subjects.longdesc.subscribe(this.updateAttr("longdesc"));
 
-            /* TODO: necessary? */
-            this.subjects.ismap.subscribe(this.updateAttr("ismap"));
-            this.subjects.usemap.subscribe(this.updateAttr("usemap"));
-          });
-```
-
-TODO: meh..
-
-
-```js
-        super.connectComponent();
-```
-
-Firing an event to let the outside world know the drawer is ready.
-
-
-```js
-        this.fireEvent("init");
-      });
+      /* TODO: necessary? */
+      this.subjects.ismap.subscribe(this.updateAttr("ismap"));
+      this.subjects.usemap.subscribe(this.updateAttr("usemap"));
     }
 
     selectImgURL([intersectionEntry, srcsetObj]) {
@@ -337,11 +338,9 @@ Reflect attributes changes on the original on the inner img.
       if (this.srcset) this.img.srcset = this.srcset;
       if (this.src) this.img.src = this.src;
 
-      requestAnimationFrame(() => {
-        if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
-        if (this.img.parentNode == null) this.el.appendChild(this.img);
-        this.fireEvent("load");
-      });
+      if (this.sizer.parentNode != null) this.el.removeChild(this.sizer);
+      if (this.img.parentNode == null) this.el.appendChild(this.img);
+      this.fireEvent("load");
     }
 
     updateSizerStyle([intersectionEntry, width, height]) {
