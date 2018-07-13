@@ -17,5 +17,5 @@ aside ul li a { display:block; padding:1.5rem; border-bottom:1px solid rgba(0, 0
 @media screen and (min-width:92em) { .wrapper { max-width:48rem; } }
 @media screen and (min-width:125em) { html { font-size:18px; } }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
-hy-img { display:block; }
-hy-img [slot='loading'] { position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.05); }
+hy-img, .hy-img { display:block; }
+hy-img [slot='loading'], .hy-img [slot='loading'] { position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.05); }

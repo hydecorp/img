@@ -65,6 +65,8 @@ export const imageMixin = C =>
         srcset: null,
         width: null,
         height: null,
+        dataWidth: null,
+        dataHeight: null,
         alt: null,
         decoding: null,
         longdesc: null,
@@ -82,6 +84,8 @@ export const imageMixin = C =>
         srcset: string,
         width: number,
         height: number,
+        dataWidth: number,
+        dataHeight: number,
         alt: string,
         decoding: oneOf(["sync", "async", "auto"]),
         longdesc: string,
@@ -107,6 +111,8 @@ export const imageMixin = C =>
     }
 
     connectComponent() {
+      super.connectComponent();
+
       this.img = document.createElement("img");
       this.sizer = document.createElement("div");
 
@@ -129,11 +135,12 @@ export const imageMixin = C =>
           ? createResizeObservable(this.el).pipe(startWith(initialRect))
           : of(initialRect);
 
-      const sizerStyle$ = combineLatest(
-        this.resize$,
-        this.subjects.width,
-        this.subjects.height
-      ).pipe(takeUntil(this.subjects.disconnect));
+      // Prefer `width` over `data-width`.
+      const selector = (a, b) => a || b;
+      const width$ = combineLatest(this.subjects.width, this.subjects.dataWidth, selector);
+      const height$ = combineLatest(this.subjects.height, this.subjects.dataHeight, selector);
+
+      const dimensions$ = combineLatest(this.resize$, width$, height$);
 
       const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
         takeUntil(this.subjects.disconnect),
@@ -148,7 +155,10 @@ export const imageMixin = C =>
 
       this.trigger$ = merge(isIntersecting$, this.loadImage$).pipe(share());
 
-      sizerStyle$.subscribe(this.updateSizerStyle.bind(this));
+      // Subscriptions:
+      dimensions$
+        .pipe(takeUntil(this.subjects.disconnect))
+        .subscribe(this.updateSizerStyle.bind(this));
 
       this.trigger$
         .pipe(
@@ -156,9 +166,6 @@ export const imageMixin = C =>
           distinctUntilChanged()
         )
         .subscribe(this.triggered.bind(this));
-
-      // TODO: meh..
-      super.connectComponent();
 
       // Firing an event to let the outside world know the drawer is ready.
       this.fireEvent("init");
