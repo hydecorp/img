@@ -21,9 +21,9 @@ which helps with making multiple versions of the component (Vanilla JS, WebCompo
 ```js
 import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/component";
 import { rxjsMixin } from "hy-component/src/rxjs";
-import { arrayOf, bool, oneOf, number, string } from "hy-component/src/types";
+import { bool, oneOf, number, string } from "hy-component/src/types";
 
-import { Subject, combineLatest, fromEvent, merge, never, of } from "rxjs/_esm5";
+import { Subject, combineLatest, fromEvent, merge, NEVER, of } from "rxjs/_esm5";
 import { ajax } from "rxjs/_esm5/ajax";
 import {
   distinctUntilChanged,
@@ -302,7 +302,7 @@ TODO: doc
       } else if (cache.has(href)) {
         return of(cache.get(href));
       } else {
-        return never();
+        return NEVER;
       }
     }
 
