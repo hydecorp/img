@@ -20,7 +20,7 @@ import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/c
 import { rxjsMixin } from "hy-component/src/rxjs";
 import { bool, oneOf, number, string } from "hy-component/src/types";
 
-import { Subject, combineLatest, fromEvent, merge, never, of } from "rxjs/_esm5";
+import { Subject, combineLatest, fromEvent, merge, NEVER, of } from "rxjs/_esm5";
 import { ajax } from "rxjs/_esm5/ajax";
 import {
   distinctUntilChanged,
@@ -250,7 +250,7 @@ export const imageMixin = C =>
       } else if (cache.has(href)) {
         return of(cache.get(href));
       } else {
-        return never();
+        return NEVER;
       }
     }
 
