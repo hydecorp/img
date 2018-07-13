@@ -1,6 +1,6 @@
 {
   "name": "hy-img",
-  "version": "1.0.0-hydejack.8",
+  "version": "1.0.0-hydejack.9",
   "description": "",
   "main": "src/index.js",
   "scripts": {
