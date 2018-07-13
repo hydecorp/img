@@ -18,7 +18,7 @@
 // which helps with making multiple versions of the component (Vanilla JS, WebComponent, etc...).
 import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/component";
 import { rxjsMixin } from "hy-component/src/rxjs";
-import { arrayOf, bool, oneOf, number, string } from "hy-component/src/types";
+import { bool, oneOf, number, string } from "hy-component/src/types";
 
 import { Subject, combineLatest, fromEvent, merge, never, of } from "rxjs/_esm5";
 import { ajax } from "rxjs/_esm5/ajax";
