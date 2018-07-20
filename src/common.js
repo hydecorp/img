@@ -14,24 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { Observable } from "rxjs/_esm5";
-
 export const hasCSSOM = "attributeStyleMap" in Element.prototype && "CSS" in window && CSS.number;
-
-export const createXObservable = X => (el, cOpts, oOpts) =>
-  Observable.create(obs => {
-    const next = obs.next.bind(obs);
-    const observer = new X(xs => Array.from(xs).forEach(next), cOpts);
-    /* if (process.env.DEBUG) console.log("observe", X.name); */
-    observer.observe(el, oOpts);
-    return () => {
-      /* if (process.env.DEBUG) console.log("unobserve", X.name); */
-      observer.unobserve(el);
-    };
-  });
-
-export const createIntersectionObservable = createXObservable(window.IntersectionObserver);
-export const createResizeObservable = createXObservable(window.ResizeObserver);
 
 /* export const idle = x => new Promise(res => requestIdleCallback(() => res(x))); */
 /* export const anim = x => new Promise(res => requestAnimationFrame(() => res(x))); */

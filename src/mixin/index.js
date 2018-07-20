@@ -17,7 +17,7 @@
 // Importing the hy-compontent base libary,
 // which helps with making multiple versions of the component (Vanilla JS, WebComponent, etc...).
 import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/component";
-import { rxjsMixin } from "hy-component/src/rxjs";
+import { rxjsMixin, createXObservable } from "hy-component/src/rxjs";
 import { bool, oneOf, number, string } from "hy-component/src/types";
 
 import { Subject, combineLatest, fromEvent, merge, NEVER, of } from "rxjs/_esm5";
@@ -36,8 +36,6 @@ import {
 
 import {
   hasCSSOM,
-  createIntersectionObservable,
-  createResizeObservable,
   isExternal,
 } from "../common";
 
@@ -132,7 +130,7 @@ export const imageMixin = C =>
 
       this.resize$ =
         "ResizeObserver" in window
-          ? createResizeObservable(this.el).pipe(startWith(initialRect))
+          ? createXObservable(ResizeObserver)(this.el).pipe(startWith(initialRect))
           : of(initialRect);
 
       // Prefer `width` over `data-width`.
@@ -147,7 +145,7 @@ export const imageMixin = C =>
         switchMap(
           ([root, rootMargin]) =>
             "IntersectionObserver" in window
-              ? createIntersectionObservable(this.el, { root, rootMargin })
+              ? createXObservable(IntersectionObserver)(this.el, { root, rootMargin })
               : of({ isIntersecting: true })
         ),
         map(({ isIntersecting }) => isIntersecting)
