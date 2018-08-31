@@ -20,7 +20,7 @@ which helps with making multiple versions of the component (Vanilla JS, WebCompo
 
 ```js
 import { componentMixin, COMPONENT_FEATURE_TESTS, Set } from "hy-component/src/component";
-import { rxjsMixin } from "hy-component/src/rxjs";
+import { rxjsMixin, createXObservable } from "hy-component/src/rxjs";
 import { bool, oneOf, number, string } from "hy-component/src/types";
 
 import { Subject, combineLatest, fromEvent, merge, NEVER, of } from "rxjs/_esm5";
@@ -37,12 +37,7 @@ import {
   tap,
 } from "rxjs/_esm5/operators";
 
-import {
-  hasCSSOM,
-  createIntersectionObservable,
-  createResizeObservable,
-  isExternal,
-} from "../common";
+import { hasCSSOM, isExternal } from "../common";
 
 import { parseSrcset, srcsetFromSrc } from "./srcset";
 ```
@@ -155,7 +150,7 @@ but we need to get the width of the image somehow.
 
       this.resize$ =
         "ResizeObserver" in window
-          ? createResizeObservable(this.el).pipe(startWith(initialRect))
+          ? createXObservable(ResizeObserver)(this.el).pipe(startWith(initialRect))
           : of(initialRect);
 ```
 
@@ -174,7 +169,7 @@ Prefer `width` over `data-width`.
         switchMap(
           ([root, rootMargin]) =>
             "IntersectionObserver" in window
-              ? createIntersectionObservable(this.el, { root, rootMargin })
+              ? createXObservable(IntersectionObserver)(this.el, { root, rootMargin })
               : of({ isIntersecting: true })
         ),
         map(({ isIntersecting }) => isIntersecting)

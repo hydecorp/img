@@ -34,10 +34,7 @@ import {
   tap,
 } from "rxjs/_esm5/operators";
 
-import {
-  hasCSSOM,
-  isExternal,
-} from "../common";
+import { hasCSSOM, isExternal } from "../common";
 
 import { parseSrcset, srcsetFromSrc } from "./srcset";
 
