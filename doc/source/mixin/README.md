@@ -166,11 +166,10 @@ Prefer `width` over `data-width`.
 
       const isIntersecting$ = combineLatest(this.subjects.root, this.subjects.rootMargin).pipe(
         takeUntil(this.subjects.disconnect),
-        switchMap(
-          ([root, rootMargin]) =>
-            "IntersectionObserver" in window
-              ? createXObservable(IntersectionObserver)(this.el, { root, rootMargin })
-              : of({ isIntersecting: true })
+        switchMap(([root, rootMargin]) =>
+          "IntersectionObserver" in window
+            ? createXObservable(IntersectionObserver)(this.el, { root, rootMargin })
+            : of({ isIntersecting: true })
         ),
         map(({ isIntersecting }) => isIntersecting)
       );
