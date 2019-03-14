@@ -75,7 +75,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  jekyll (~> 3.6)
+  jekyll (~> 3.8.4)
   jekyll-default-layout
   jekyll-optional-front-matter
   jekyll-readme-index
