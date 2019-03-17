@@ -46,5 +46,6 @@ _drafts
 react
 
 # Build artifacts
-/dist
-/lib
+dist
+lib
+.stencil

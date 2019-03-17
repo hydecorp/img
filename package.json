@@ -2,21 +2,20 @@
   "name": "hy-img",
   "version": "1.0.0-hydejack.12",
   "description": "",
-  "main": "src/index.js",
+  "module": "dist/esm/index.js",
+  "main": "dist/index.js",
+  "unpkg": "dist/index.js",
+  "types": "dist/types/components.d.ts",
+  "collection": "dist/collection/collection-manifest.json",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "clean": "rm -rf dist lib doc/source",
     "test": "exit 0",
-    "format": "prettier --write \"src/**/*.js\"",
-    "build": "npm run build:dev & npm run build:prod & npm run build:lib & npm run build:doc & wait",
-    "build:lib": "babel src --out-dir lib",
-    "build:prod": "webpack --mode production --display-optimization-bailout",
-    "build:dev": "webpack --mode development --display-optimization-bailout",
-    "build:doc": ".scripts/gen-doc.js && .scripts/gen-readme.js",
-    "watch": "npm run watch:src & npm run watch:doc",
-    "watch:src": "webpack --watch --mode development --progress --colors",
-    "watch:doc": "npm run build:doc && onchange 'src/**/*.js' -- npm run build:doc '{{changed}}'",
-    "serve": "http-server -s -p $npm_package_config_port",
-    "dev": "npm run watch:src & npm run serve",
+    "build": "stencil build --docs",
+    "watch": "stencil build --dev --watch --serve",
+    "build-doc": ".scripts/gen-doc.js && .scripts/gen-readme.js",
     "preversion": "sed -i '' 's:/dist:#/dist:' .gitignore",
     "version": "npm run format && npm run build && git add .",
     "postversion": "sed -i '' 's:#/dist:/dist:' .gitignore && git rm --cached -r dist && git add . && git commit -m 'restore preversion .gitignore'"
@@ -27,34 +26,12 @@
   "author": "Florian Klampfer <mail@qwtel.com> (https://qwtel.com/)",
   "license": "GPL-3.0",
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.3.4",
-    "@babel/preset-env": "^7.3.4",
-    "babel-loader": "^8.0.5",
-    "camelcase": "^5.2.0",
+    "@stencil/core": "^0.18.1",
     "docco": "0.7.0",
-    "file-loader": "^3.0.1",
-    "html-webpack-plugin": "^3.2.0",
-    "onchange": "^5.2.0",
-    "prettier": "^1.16.4",
-    "raw-loader": "^1.0.0",
-    "underscore-template-loader": "^1.0.0",
-    "webpack": "^4.29.6",
-    "webpack-cli": "^3.2.3",
-    "webpack-merge": "^4.2.1",
-    "yargs": "^13.2.2"
+    "prettier": "^1.16.4"
   },
   "dependencies": {
-    "hy-component": "^1.0.0-pre.27",
     "rxjs": "^6.4.0"
-  },
-  "optionalDependencies": {
-    "jquery": "^3.3.1"
-  },
-  "directories": {
-    "lib": "./lib",
-    "doc": "./doc",
-    "example": "./example"
   },
   "repository": {
     "type": "git",
@@ -67,10 +44,5 @@
   "prettier": {
     "printWidth": 100,
     "trailingComma": "es5"
-  },
-  "babel": {
-    "presets": [
-      "@babel/preset-env"
-    ]
   }
 }

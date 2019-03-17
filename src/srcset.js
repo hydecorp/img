@@ -1,22 +1,30 @@
-// Copyright 2015 The AMP HTML Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// <http://www.apache.org/licenses/LICENSE-2.0>
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * Copyright 2015 The AMP HTML Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-// import { dev, user } from "./log";
+import {devAssert, userAssert} from './log';
+
 
 /**
  * A single source within a srcset. Only one: width or DPR can be specified at
  * a time.
+ * @typedef {{
+ *   url: string,
+ *   width: (number|undefined),
+ *   dpr: (number|undefined)
+ * }}
  */
 let SrcsetSourceDef;
 
@@ -26,7 +34,8 @@ let SrcsetSourceDef;
  * Example 2: "image1.png 2x, image2.png"
  * Example 3: "image1,100w.png 100w, image2.png 50w"
  */
-const srcsetRegex = /(\S+)(?:\s+(?:(-?\d+(?:\.\d+)?)([a-zA-Z]*)))?\s*(?:,|$)/g;
+const srcsetRegex =
+    /(\S+)(?:\s+(?:(-?\d+(?:\.\d+)?)([a-zA-Z]*)))?\s*(?:,|$)/g;
 
 /**
  * Extracts `srcset` and fallbacks to `src` if not available.
@@ -34,14 +43,16 @@ const srcsetRegex = /(\S+)(?:\s+(?:(-?\d+(?:\.\d+)?)([a-zA-Z]*)))?\s*(?:,|$)/g;
  * @return {!Srcset}
  */
 export function srcsetFromElement(element) {
-  const srcsetAttr = element.getAttribute("srcset");
+  const srcsetAttr = element.getAttribute('srcset');
   if (srcsetAttr) {
     return parseSrcset(srcsetAttr);
   }
   // We can't push `src` via `parseSrcset` because URLs in `src` are not always
   // RFC compliant and can't be easily parsed as an `srcset`. For instance,
   // they sometimes contain space characters.
-  const srcAttr = element.getAttribute("src");
+  const srcAttr = userAssert(element.getAttribute('src'),
+      'Either non-empty "srcset" or "src" attribute must be specified: %s',
+      element);
   return srcsetFromSrc(srcAttr);
 }
 
@@ -51,7 +62,7 @@ export function srcsetFromElement(element) {
  * @return {!Srcset}
  */
 export function srcsetFromSrc(src) {
-  return new Srcset([{ url: src, width: undefined, dpr: 1 }]);
+  return new Srcset([{url: src, width: undefined, dpr: 1}]);
 }
 
 /**
@@ -69,9 +80,9 @@ export function parseSrcset(s) {
     let width, dpr;
     if (match[2]) {
       const type = match[3].toLowerCase();
-      if (type == "w") {
+      if (type == 'w') {
         width = parseInt(match[2], 10);
-      } else if (type == "x") {
+      } else if (type == 'x') {
         dpr = parseFloat(match[2]);
       } else {
         continue;
@@ -80,10 +91,11 @@ export function parseSrcset(s) {
       // If no "w" or "x" specified, we assume it's "1x".
       dpr = 1;
     }
-    sources.push({ url, width, dpr });
+    sources.push({url, width, dpr});
   }
   return new Srcset(sources);
 }
+
 
 /**
  * A srcset object contains one or more sources.
@@ -97,11 +109,12 @@ export function parseSrcset(s) {
  * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#Attributes
  */
 export class Srcset {
+
   /**
    * @param {!Array<!SrcsetSourceDef>} sources
    */
   constructor(sources) {
-    // user().assert(sources.length > 0, "Srcset must have at least one source");
+    userAssert(sources.length > 0, 'Srcset must have at least one source');
     /** @private @const {!Array<!SrcsetSourceDef>} */
     this.sources_ = sources;
 
@@ -113,16 +126,14 @@ export class Srcset {
       hasWidth = hasWidth || !!source.width;
       hasDpr = hasDpr || !!source.dpr;
     }
-    // user().assert(!!(hasWidth ^ hasDpr), "Srcset must have width or dpr sources, but not both");
+    userAssert(!!(hasWidth ^ hasDpr),
+        'Srcset must have width or dpr sources, but not both');
 
     // Source and assert duplicates.
     sources.sort(hasWidth ? sortByWidth : sortByDpr);
 
     /** @private @const {boolean} */
     this.widthBased_ = hasWidth;
-
-    /** @private @const {boolean} */
-    this.dprBased_ = hasDpr;
   }
 
   /**
@@ -154,8 +165,8 @@ export class Srcset {
    * @return {string}
    */
   select(width, dpr) {
-    // dev().assert(width, "width=%s", width);
-    // dev().assert(dpr, "dpr=%s", dpr);
+    devAssert(width, 'width=%s', width);
+    devAssert(dpr, 'dpr=%s', dpr);
     let index = 0;
     if (this.widthBased_) {
       index = this.selectByWidth_(width * dpr);
@@ -245,16 +256,30 @@ export class Srcset {
       }
       res.push(src);
     }
-    return res.join(", ");
+    return res.join(', ');
   }
 }
 
+/**
+ * Sorts by width
+ *
+ * @param {number} s1
+ * @param {number} s2
+ * @return {number}
+ */
 function sortByWidth(s1, s2) {
-  // user().assert(s1.width != s2.width, "Duplicate width: %s", s1.width);
+  userAssert(s1.width != s2.width, 'Duplicate width: %s', s1.width);
   return s1.width - s2.width;
 }
 
+/**
+ * Sorts by dpr
+ *
+ * @param {!Object} s1
+ * @param {!Object} s2
+ * @return {number}
+ */
 function sortByDpr(s1, s2) {
-  // user().assert(s1.dpr != s2.dpr, "Duplicate dpr: %s", s1.dpr);
+  userAssert(s1.dpr != s2.dpr, 'Duplicate dpr: %s', s1.dpr);
   return s1.dpr - s2.dpr;
 }
