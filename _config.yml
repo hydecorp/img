@@ -53,22 +53,22 @@ remote_theme: qwtel/hydejack
 hydejack:
   no_mark_external: true
 
-defaults:
-  - scope:
-      path: doc/options.md
-    values:
-      menu: true
-      order: 1
-  - scope:
-      path: doc/methods.md
-    values:
-      menu: true
-      order: 2
-  - scope:
-      path: doc/events.md
-    values:
-      menu: true
-      order: 3
+# defaults:
+#   - scope:
+#       path: doc/options.md
+#     values:
+#       menu: true
+#       order: 1
+#   - scope:
+#       path: doc/methods.md
+#     values:
+#       menu: true
+#       order: 2
+#   - scope:
+#       path: doc/events.md
+#     values:
+#       menu: true
+#       order: 3
 
 titles_from_headings:
   strip_title: true

@@ -26,9 +26,7 @@
   "author": "Florian Klampfer <mail@qwtel.com> (https://qwtel.com/)",
   "license": "GPL-3.0",
   "devDependencies": {
-    "@stencil/core": "^0.18.1",
-    "docco": "0.7.0",
-    "prettier": "^1.16.4"
+    "@stencil/core": "^0.18.1"
   },
   "dependencies": {
     "rxjs": "^6.4.0"
@@ -40,9 +38,5 @@
   "bugs": {
     "url": "https://github.com/qwtel/hy-img/issues"
   },
-  "homepage": "https://qwtel.com/hy-img/",
-  "prettier": {
-    "printWidth": 100,
-    "trailingComma": "es5"
-  }
+  "homepage": "https://qwtel.com/hy-img/"
 }
