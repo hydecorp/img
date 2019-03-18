@@ -1,19 +1,22 @@
-// # src / index.tsx
-// Copyright (c) 2019 Florian Klampfer <https://qwtel.com/>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+/** 
+ * Copyright (c) 2019 Florian Klampfer <https://qwtel.com/>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * @license 
+ * @nocompile
+ */
 import { Component, Prop, Element, Watch, State, Method } from '@stencil/core';
 
 import { Subject, ReplaySubject, Observable, combineLatest, merge, NEVER, of } from "rxjs";
@@ -35,8 +38,8 @@ import { isExternal, /* subscribeWhen, */ createResizeObservable, createItersect
 import { parseSrcset, srcsetFromSrc, Srcset } from './srcset';
 
 @Component({
-  tag: 'hy-img',
-  // styleUrl: 'hy-img.css',
+  tag: 'hy-img', 
+  styleUrl: 'style.css',
   shadow: true,
 })
 export class HyImg {
@@ -51,6 +54,7 @@ export class HyImg {
   @Prop({ mutable: true, reflectToAttr: true }) @State() alt: string;
   @Prop({ mutable: true, reflectToAttr: true }) @State() decoding: 'sync' | 'async' | 'auto';
   @Prop({ mutable: true, reflectToAttr: true, attr: 'usemap' }) @State() useMap: string;
+  @Prop({ mutable: true, reflectToAttr: true }) strategy: 'cache' | 'blob' = 'cache';
 
   private root$: Subject<string>;
   private rootMargin$: Subject<string>;
@@ -117,9 +121,6 @@ export class HyImg {
     const noscript = this.el.querySelector('noscript');
     if (noscript) noscript.parentNode.removeChild(noscript);
 
-    // HACK
-    // this.el.style.position = 'relative';
-
     this.root$ = this.createAttrSubject('root');
     this.rootMargin$ = this.createAttrSubject('rootMargin');
     this.w$ = this.createAttrSubject('w');
@@ -137,12 +138,10 @@ export class HyImg {
         this.renderHeight = height;
       });
 
-    const isIntersecting$ = this.getIsIntersecting();
-
-    const trigger$ = merge(isIntersecting$, this.loadImage$).pipe(
-      // subscribeWhen(this.connected$),
-      share(),
-    );
+    const trigger$ = merge(
+      this.getIsIntersecting(),
+      this.loadImage$,
+    ).pipe(share());
 
     trigger$
       .pipe(filter(x => !!x), distinctUntilChanged())
@@ -165,12 +164,12 @@ export class HyImg {
       distinctUntilKeyChanged("href"),
     );
 
-    const isIntersecting$ = trigger$.pipe(
+    const isIntersecting2$ = trigger$.pipe(
       distinctUntilChanged(),
       startWith(true),
     );
 
-    combineLatest(url$, isIntersecting$).pipe(
+    combineLatest(url$, isIntersecting2$).pipe(
       switchMap(args => this.fetchImage(...args)),
       catchError(() => url$),
       // tap(() => (this.loading = false)),
@@ -186,20 +185,33 @@ export class HyImg {
     return new URL(selection, window.location.href)
   }
 
+  private cacheStrategy(fetch$: Observable<Response>) {
+    switch (this.strategy) {
+      case 'blob': {
+        return fetch$.pipe(
+          switchMap(x => x.blob()),
+          map(blob => URL.createObjectURL(blob))
+        );
+      }
+      case 'cache':
+      default: {
+        return fetch$.pipe(map(x => x.url));
+      }
+    }
+  }
+
   private fetchImage(url: URL, isIntersecting: boolean): Observable<string> {
     const { href } = url;
     const { cache } = this;
 
     if (isIntersecting && !cache.has(href)) {
-      return fetchRx(href, {
+      const fetch$ = fetchRx(href, {
         method: "GET",
         headers: { Accept: "image/*" },
         mode: isExternal(url) ? 'cors' : undefined,
-      }).pipe(
-        // map(x => x.url),
-        switchMap(x => x.blob()),
-        map(blob => URL.createObjectURL(blob)),
-        tap(objectURL => cache.set(href, objectURL)),
+      });
+      return this.cacheStrategy(fetch$).pipe(
+        tap(objectURL => cache.set(href, objectURL))
       );
     } else if (cache.has(href)) {
       return of(cache.get(href));
@@ -210,7 +222,7 @@ export class HyImg {
 
   render() {
     return [
-      <div class="sizer" style={{ position: 'relative', ...this.calcSizerStyle() }}>
+      <div class="sizer" style={this.calcSizerStyle()}>
         <slot name="loading" />
         {this.url ? <img
           src={this.url}
@@ -224,21 +236,14 @@ export class HyImg {
     ];
   }
 
-  private calcImageStyle() {
-    return {
-      visibility: this.visibility,
-      position: 'absolute',
-      top: '0',
-      left: '0',
-      maxWidth: '100%',
-      maxHeight: '100%',
-    };
+  private calcImageStyle(): { [key: string]: string} {
+    return { visibility: this.visibility };
   }
 
   private calcSizerStyle() {
     const { renderWidth, renderHeight, contentWidth } = this;
 
-    const style: { width?: string, height?: string, paddingTop?: string } = {};
+    const style: { [key: string]: string } = {};
 
     if (renderWidth !== 0 && renderHeight !== 0) {
       if (renderWidth >= contentWidth) {

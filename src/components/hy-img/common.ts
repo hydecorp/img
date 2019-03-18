@@ -27,7 +27,7 @@ export function isExternal({ protocol, host }, location = window.location) {
   return protocol !== location.protocol || host !== location.host;
 }
 
-export function subscribeWhen<T>(p$: Observable<boolean>) { 
+export function subscribeWhen<T>(p$: Observable<boolean>) {
   return (source: Observable<T>) => {
     // if (process.env.DEBUG && !p$) throw Error();
     return p$.pipe(switchMap(p => (p ? source : NEVER)));
@@ -51,13 +51,17 @@ export function createItersectionObserver(el: HTMLElement, init: IntersectionObs
 }
 
 export function fetchRx(input: RequestInfo, init?: RequestInit): Observable<Response> {
-  const controller = new AbortController();
-  const { signal } = controller;
   return Observable.create((observer: PartialObserver<Response>) => {
-    fetch(input, { signal, ...init })
-      .then(x => observer.next(x))
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    fetch(input, { ...init, signal })
+      .then(x => {
+        observer.next(x);
+        observer.complete();
+      })
       .catch(x => observer.error(x));
-      // .finally(() => observer.complete())
+
     return () => controller.abort();
   });
 }

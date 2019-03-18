@@ -21,6 +21,7 @@ export namespace Components {
     'rootMargin': string;
     'src': string;
     'srcset': string;
+    'strategy': 'cache' | 'blob';
     'useMap': string;
     'w': number;
   }
@@ -32,6 +33,7 @@ export namespace Components {
     'rootMargin'?: string;
     'src'?: string;
     'srcset'?: string;
+    'strategy'?: 'cache' | 'blob';
     'useMap'?: string;
     'w'?: number;
   }
