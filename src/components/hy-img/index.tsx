@@ -19,26 +19,14 @@
  */
 import { Component, Prop, Element, Watch, State, Method } from '@stencil/core';
 
-import { Subject, ReplaySubject, Observable, combineLatest, merge, NEVER, of } from "rxjs";
-import {
-  catchError,
-  distinctUntilChanged,
-  distinctUntilKeyChanged,
-  filter,
-  map,
-  share,
-  startWith,
-  switchMap,
-  // withLatestFrom,
-  // takeUntil,
-  tap,
-} from "rxjs/operators";
+import { Subject, BehaviorSubject, Observable, combineLatest, merge, NEVER, of } from "rxjs";
+import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, share, startWith, switchMap, tap } from "rxjs/operators";
 
-import { isExternal, /* subscribeWhen, */ createResizeObservable, createItersectionObserver, fetchRx } from "./common";
+import { isExternal, createResizeObservable, createItersectionObservable, fetchRx } from "./common";
 import { parseSrcset, srcsetFromSrc, Srcset } from './srcset';
 
 @Component({
-  tag: 'hy-img', 
+  tag: 'hy-img',
   styleUrl: 'style.css',
   shadow: true,
 })
@@ -56,12 +44,12 @@ export class HyImg {
   @Prop({ mutable: true, reflectToAttr: true, attr: 'usemap' }) @State() useMap: string;
   @Prop({ mutable: true, reflectToAttr: true }) strategy: 'cache' | 'blob' = 'cache';
 
-  private root$: Subject<string>;
-  private rootMargin$: Subject<string>;
-  private w$: Subject<number>;
-  private h$: Subject<number>;
-  private src$: Subject<string>;
-  private srcset$: Subject<string>;
+  root$: Subject<string>;
+  rootMargin$: Subject<string>;
+  w$: Subject<number>;
+  h$: Subject<number>;
+  src$: Subject<string>;
+  srcset$: Subject<string>;
 
   @Watch('root') setRoot(_: string) { this.root$.next(_); }
   @Watch('rootMargin') setRootMargin(_: string) { this.rootMargin$.next(_); }
@@ -70,30 +58,24 @@ export class HyImg {
   @Watch('src') setSrc(_: string) { this.src$.next(_); }
   @Watch('srcset') setSrcset(_: string) { this.srcset$.next(_); }
 
-  private connected$: Subject<boolean> = new ReplaySubject();
+  connected$: Subject<boolean>;
 
-  private loadImage$: Subject<boolean> = new Subject();
-  private cache: Map<string, string> = new Map();
+  loadImage$: Subject<boolean> = new Subject();
+  cache: Map<string, string> = new Map();
 
-  @State() private renderWidth: number
-  @State() private renderHeight: number
-  @State() private contentWidth: number
-  // @State() private loading: boolean;
-  @State() private url: string = null;
-  @State() private visibility = 'hidden';
+  @State() renderWidth: number
+  @State() renderHeight: number
+  @State() contentWidth: number
+  // @State() loading: boolean;
+  @State() url: string = null;
+  @State() visibility = 'hidden';
 
-  private createAttrSubject<T>(key: string): Subject<T> {
-    const sub = new ReplaySubject<T>();
-    sub.next(this[key]);
-    return sub;
-  }
-
-  private getIsIntersecting() {
+  getIsIntersecting() {
     return combineLatest(this.root$, this.rootMargin$).pipe(
       // subscribeWhen(this.connected$),
       switchMap(([root, rootMargin]) =>
         "IntersectionObserver" in window
-          ? createItersectionObserver(this.el, {
+          ? createItersectionObservable(this.el, {
             root: document.querySelector(root),
             rootMargin,
           })
@@ -103,53 +85,48 @@ export class HyImg {
     );
   }
 
-  private getResize() {
-    const initialRect = this.el.getBoundingClientRect() as DOMRect;
-
+  getContentWidth() {
     return "ResizeObserver" in window
       ? createResizeObservable(this.el).pipe(
-        map(x => x.contentRect),
-        startWith(initialRect),
+        map(x => x.contentRect.width),
+        startWith(this.el.clientWidth),
       )
-      : of(initialRect);
+      : NEVER
   }
 
   componentWillLoad() {
-    this.connected$.next(true);
+    this.connected$ = new BehaviorSubject(true);
+
+    this.root$ = new BehaviorSubject(this.root);
+    this.rootMargin$ = new BehaviorSubject(this.rootMargin);
+    this.w$ = new BehaviorSubject(this.w);
+    this.h$ = new BehaviorSubject(this.h);
+    this.src$ = new BehaviorSubject(this.src);
+    this.srcset$ = new BehaviorSubject(this.srcset);
 
     // HACK
-    const noscript = this.el.querySelector('noscript');
-    if (noscript) noscript.parentNode.removeChild(noscript);
+    // const noscript = this.el.querySelector('noscript');
+    // if (noscript) noscript.parentNode.removeChild(noscript);
 
-    this.root$ = this.createAttrSubject('root');
-    this.rootMargin$ = this.createAttrSubject('rootMargin');
-    this.w$ = this.createAttrSubject('w');
-    this.h$ = this.createAttrSubject('h');
-    this.src$ = this.createAttrSubject('src');
-    this.srcset$ = this.createAttrSubject('srcset');
+    const contentWidth$ = this.getContentWidth();
 
-    const resize$ = this.getResize();
-
-    combineLatest(resize$, this.w$, this.h$)
+    combineLatest(contentWidth$, this.w$, this.h$)
       // .pipe(subscribeWhen(this.connected$))
-      .subscribe(([{ width: contentWidth }, width, height]) => {
+      .subscribe(([contentWidth, width, height]) => {
         this.contentWidth = contentWidth;
         this.renderWidth = width;
         this.renderHeight = height;
       });
 
-    const trigger$ = merge(
-      this.getIsIntersecting(),
-      this.loadImage$,
-    ).pipe(share());
+    const trigger$ = merge(this.getIsIntersecting(), this.loadImage$).pipe(share());
 
     trigger$
       .pipe(filter(x => !!x), distinctUntilChanged())
-      .subscribe(() => this.triggered(trigger$, resize$));
+      .subscribe(() => this.triggered(trigger$, contentWidth$));
   }
 
   // TODO: rename
-  private triggered(trigger$: Observable<boolean>, resize$: Observable<DOMRect>) {
+  triggered(trigger$: Observable<boolean>, contentWidth$: Observable<number>) {
     // this.loading = true;
 
     const srcset$ = combineLatest(this.src$, this.srcset$).pipe(
@@ -159,17 +136,17 @@ export class HyImg {
       map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src))),
     );
 
-    const url$ = combineLatest(resize$, srcset$).pipe(
+    const url$ = combineLatest(contentWidth$, srcset$).pipe(
       map(args => this.selectSrcsetURL(...args)),
       distinctUntilKeyChanged("href"),
     );
 
-    const isIntersecting2$ = trigger$.pipe(
-      distinctUntilChanged(),
+    const trigger2$ = trigger$.pipe(
+      // distinctUntilChanged(), // ???
       startWith(true),
     );
 
-    combineLatest(url$, isIntersecting2$).pipe(
+    combineLatest(url$, trigger2$).pipe(
       switchMap(args => this.fetchImage(...args)),
       catchError(() => url$),
       // tap(() => (this.loading = false)),
@@ -179,13 +156,13 @@ export class HyImg {
       });
   }
 
-  private selectSrcsetURL({ width }: DOMRect, srcsetObj: Srcset) {
+  selectSrcsetURL(width: number, srcsetObj: Srcset) {
     const dpr = window.devicePixelRatio || 1;
     const selection = srcsetObj.select(width || window.screen.width, dpr);
     return new URL(selection, window.location.href)
   }
 
-  private cacheStrategy(fetch$: Observable<Response>) {
+  cacheStrategy(fetch$: Observable<Response>) {
     switch (this.strategy) {
       case 'blob': {
         return fetch$.pipe(
@@ -200,7 +177,7 @@ export class HyImg {
     }
   }
 
-  private fetchImage(url: URL, isIntersecting: boolean): Observable<string> {
+  fetchImage(url: URL, isIntersecting: boolean): Observable<string> {
     const { href } = url;
     const { cache } = this;
 
@@ -236,11 +213,11 @@ export class HyImg {
     ];
   }
 
-  private calcImageStyle(): { [key: string]: string} {
+  calcImageStyle(): { [key: string]: string } {
     return { visibility: this.visibility };
   }
 
-  private calcSizerStyle() {
+  calcSizerStyle() {
     const { renderWidth, renderHeight, contentWidth } = this;
 
     const style: { [key: string]: string } = {};
