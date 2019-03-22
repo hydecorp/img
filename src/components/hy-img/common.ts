@@ -1,19 +1,3 @@
-// # src / common.ts
-// Copyright (c) 2019 Florian Klampfer <https://qwtel.com/>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 // export const hasCSSOM = "attributeStyleMap" in Element.prototype && "CSS" in window && CSS.number;
 
 /* export const idle = x => new Promise(res => requestIdleCallback(() => res(x))); */
@@ -36,15 +20,15 @@ export function subscribeWhen<T>(p$: Observable<boolean>) {
 
 export function createResizeObservable(el: HTMLElement): Observable<ResizeObserverEntry> {
   return Observable.create((obs: PartialObserver<ResizeObserverEntry>) => {
-    const observer = new window.ResizeObserver(xs => Array.from(xs).forEach(x => obs.next(x)));
+    const observer = new window.ResizeObserver(xs => xs.forEach(x => obs.next(x)));
     observer.observe(el);
     return () => { observer.unobserve(el); };
   });
 }
 
-export function createItersectionObservable(el: HTMLElement, init: IntersectionObserverInit): Observable<IntersectionObserverEntry> {
+export function createItersectionObservable(el: HTMLElement, options?: IntersectionObserverInit): Observable<IntersectionObserverEntry> {
   return Observable.create((obs: PartialObserver<IntersectionObserverEntry>) => {
-    const observer = new IntersectionObserver(xs => Array.from(xs).forEach(x => obs.next(x)), init);
+    const observer = new IntersectionObserver(xs => xs.forEach(x => obs.next(x)), options);
     observer.observe(el);
     return () => { observer.unobserve(el); };
   });
@@ -55,14 +39,16 @@ export function fetchRx(input: RequestInfo, init?: RequestInit): Observable<Resp
     const controller = new AbortController();
     const { signal } = controller;
 
+    let response = null;
     fetch(input, { ...init, signal })
-      .then(x => {
-        observer.next(x);
+      .then(r => {
+        response = r; 
+        observer.next(r); 
         observer.complete();
       })
       .catch(x => observer.error(x));
 
-    return () => controller.abort();
+    return () => { if (!response) controller.abort(); };
   });
 }
 
