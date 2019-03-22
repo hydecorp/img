@@ -46,4 +46,4 @@ _drafts
 .stencil
 
 # Build artifacts
-/dist
+#/dist

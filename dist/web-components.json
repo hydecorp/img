@@ -1,0 +1,60 @@
+{
+  "tags": [
+    {
+      "label": "hy-img",
+      "description": "",
+      "attributes": [
+        {
+          "label": "alt",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "decoding",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "h",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "root",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "root-margin",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "src",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "srcset",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "strategy",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "usemap",
+          "description": "",
+          "required": false
+        },
+        {
+          "label": "w",
+          "description": "",
+          "required": false
+        }
+      ]
+    }
+  ]
+}

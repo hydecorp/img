@@ -1,6 +1,6 @@
 {
   "name": "hy-img",
-  "version": "1.0.0-stencil",
+  "version": "1.0.0-stencil.0",
   "description": "",
   "module": "dist/esm/index.js",
   "main": "dist/index.js",

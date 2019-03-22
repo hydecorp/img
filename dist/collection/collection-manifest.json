@@ -1,0 +1,140 @@
+{
+  "components": [
+    {
+      "tag": "hy-img",
+      "dependencies": [],
+      "componentClass": "HyImg",
+      "componentPath": "components/hy-img/index.js",
+      "styles": {
+        "$": {
+          "stylePaths": [
+            "components/hy-img/style.css"
+          ]
+        }
+      },
+      "props": [
+        {
+          "name": "alt",
+          "type": "String",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "alt"
+        },
+        {
+          "name": "decoding",
+          "type": "String",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "decoding"
+        },
+        {
+          "name": "h",
+          "type": "Number",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "h",
+          "watch": [
+            "setH"
+          ]
+        },
+        {
+          "name": "root",
+          "type": "String",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "root",
+          "watch": [
+            "setRoot"
+          ]
+        },
+        {
+          "name": "rootMargin",
+          "type": "String",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "root-margin",
+          "watch": [
+            "setRootMargin"
+          ]
+        },
+        {
+          "name": "src",
+          "type": "String",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "src",
+          "watch": [
+            "setSrc"
+          ]
+        },
+        {
+          "name": "srcset",
+          "type": "String",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "srcset",
+          "watch": [
+            "setSrcset"
+          ]
+        },
+        {
+          "name": "strategy",
+          "type": "String",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "strategy"
+        },
+        {
+          "name": "useMap",
+          "type": "String",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "usemap"
+        },
+        {
+          "name": "w",
+          "type": "Number",
+          "mutable": true,
+          "reflectToAttr": true,
+          "attr": "w",
+          "watch": [
+            "setW"
+          ]
+        }
+      ],
+      "states": [
+        {
+          "name": "contentWidth"
+        },
+        {
+          "name": "renderHeight"
+        },
+        {
+          "name": "renderWidth"
+        },
+        {
+          "name": "url"
+        },
+        {
+          "name": "visibility"
+        }
+      ],
+      "methods": [
+        {
+          "name": "loadImage"
+        }
+      ],
+      "hostElement": {
+        "name": "el"
+      },
+      "shadow": true
+    }
+  ],
+  "collections": [],
+  "compiler": {
+    "name": "@stencil/core",
+    "version": "0.18.1",
+    "typescriptVersion": "3.3.3"
+  },
+  "bundles": []
+}
