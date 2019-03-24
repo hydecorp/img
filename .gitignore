@@ -47,3 +47,4 @@ _drafts
 
 # Build artifacts
 /dist
+/www
