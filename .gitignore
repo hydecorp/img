@@ -39,11 +39,11 @@ _drafts
 .DS_Store
 
 # Bundler
-.bundle
+/.bundle
 /vendor
 
 # Stencil
-.stencil
+/.stencil
 
 # Build artifacts
 /dist

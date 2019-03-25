@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "allowUnreachableCode": false,
-    "declaration": false,
+    // "allowSyntheticDefaultImports": true,
+    // "allowUnreachableCode": false,
+    // "declaration": false,
     "experimentalDecorators": true,
     "lib": [
       "dom",
@@ -11,16 +11,14 @@
     "moduleResolution": "node",
     "module": "esnext",
     "target": "es2017",
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
     "jsx": "react",
-    "jsxFactory": "h"
+    "jsxFactory": "h",
+    "outDir": "dist",
   },
   "include": [
-    "src",
-    "types/jsx.d.ts"
+    "src/components/hy-img/index.tsx",
+    "types/*.d.ts",
   ],
-  "exclude": [
-    "node_modules"
-  ]
 }

@@ -17,21 +17,50 @@
  * @license 
  * @nocompile
  */
-import { Component, Prop, Element, Watch, State, Method } from '@stencil/core';
+import { Component, Prop, Element, Watch, State, Method } from './pencil';
 
 import { Subject, BehaviorSubject, Observable, combineLatest, merge, NEVER, of } from "rxjs";
 import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, share, startWith, switchMap, tap } from "rxjs/operators";
 
+import { PropTypes } from '@skatejs/element';
+import SkateElement, { h } from '@skatejs/element-preact/dist/esm/index';
+import { props } from '@skatejs/element/dist/esm/props';
+
 import { isExternal, createResizeObservable, createItersectionObservable, fetchRx } from "./common";
 import { parseSrcset, srcsetFromSrc, Srcset } from './srcset';
+
+console.log('hello?');
 
 @Component({
   tag: 'hy-img',
   styleUrl: 'style.css',
   shadow: true,
 })
-export class HyImg {
-  @Element() el: HTMLElement;
+export class HTMLHyImgElement extends SkateElement {
+  static props: PropTypes = {
+    root: { ...props.string, target: 'root' },
+    rootMargin: { ...props.string, target: 'root-margin' },
+    src: { ...props.string, target: 'src' },
+    srsset: { ...props.string, target: 'srcset' },
+    w: { ...props.number, target: 'w' },
+    h: { ...props.number, target: 'h' },
+    alt: { ...props.string, target: 'alt' },
+    decoding: { ...props.string, target: 'decoding' },
+    useMap: { ...props.string, target: 'usemap' },
+    strategy: { ...props.string, target: 'strategy' },
+    renderWidth: Number,
+    renderHeight: Number,
+    contentWidth: Number,
+    url: String,
+    visibility: String,
+  }
+
+  static shadowRootOptions: ShadowRootInit = {
+    mode: 'open',
+  }
+
+  // @Element() el: HTMLElement;
+  el: HTMLElement = this;
 
   @Prop({ mutable: true, reflectToAttr: true }) root: string;
   @Prop({ mutable: true, reflectToAttr: true }) rootMargin: string;
@@ -66,7 +95,6 @@ export class HyImg {
   @State() renderWidth: number
   @State() renderHeight: number
   @State() contentWidth: number
-  // @State() loading: boolean;
   @State() url: string = null;
   @State() visibility = 'hidden';
 

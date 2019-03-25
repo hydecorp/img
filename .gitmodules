@@ -1,0 +1,3 @@
+[submodule "skatejs"]
+	path = skatejs
+	url = https://github.com/skatejs/skatejs
