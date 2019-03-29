@@ -17,73 +17,44 @@
  * @license 
  * @nocompile
  */
-import { Component, Prop, Element, Watch, State, Method } from './pencil';
+import { h, Component, Prop, Element, Watch, State, Method } from 'pencil-runtime';
 
 import { Subject, BehaviorSubject, Observable, combineLatest, merge, NEVER, of } from "rxjs";
 import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, share, startWith, switchMap, tap } from "rxjs/operators";
 
-import { PropTypes } from '@skatejs/element';
-import SkateElement, { h } from '@skatejs/element-preact/dist/esm/index';
-import { props } from '@skatejs/element/dist/esm/props';
-
 import { isExternal, createResizeObservable, createItersectionObservable, fetchRx } from "./common";
 import { parseSrcset, srcsetFromSrc, Srcset } from './srcset';
-
-console.log('hello?');
 
 @Component({
   tag: 'hy-img',
   styleUrl: 'style.css',
   shadow: true,
 })
-export class HTMLHyImgElement extends SkateElement {
-  static props: PropTypes = {
-    root: { ...props.string, target: 'root' },
-    rootMargin: { ...props.string, target: 'root-margin' },
-    src: { ...props.string, target: 'src' },
-    srsset: { ...props.string, target: 'srcset' },
-    w: { ...props.number, target: 'w' },
-    h: { ...props.number, target: 'h' },
-    alt: { ...props.string, target: 'alt' },
-    decoding: { ...props.string, target: 'decoding' },
-    useMap: { ...props.string, target: 'usemap' },
-    strategy: { ...props.string, target: 'strategy' },
-    renderWidth: Number,
-    renderHeight: Number,
-    contentWidth: Number,
-    url: String,
-    visibility: String,
-  }
+export class HTMLHyImgElement {
+  @Element() el: HTMLElement;
 
-  static shadowRootOptions: ShadowRootInit = {
-    mode: 'open',
-  }
-
-  // @Element() el: HTMLElement;
-  el: HTMLElement = this;
-
-  @Prop({ mutable: true, reflectToAttr: true }) root: string;
-  @Prop({ mutable: true, reflectToAttr: true }) rootMargin: string;
-  @Prop({ mutable: true, reflectToAttr: true }) src: string;
-  @Prop({ mutable: true, reflectToAttr: true }) srcset: string;
-  @Prop({ mutable: true, reflectToAttr: true }) w: number = 0;
-  @Prop({ mutable: true, reflectToAttr: true }) h: number = 0;
-  @Prop({ mutable: true, reflectToAttr: true }) @State() alt: string;
-  @Prop({ mutable: true, reflectToAttr: true }) @State() decoding: 'sync' | 'async' | 'auto';
-  @Prop({ mutable: true, reflectToAttr: true, attr: 'usemap' }) @State() useMap: string;
-  @Prop({ mutable: true, reflectToAttr: true }) strategy: 'cache' | 'blob' = 'cache';
+  @Prop({ type: String, mutable: true, reflectToAttr: true }) root: string;
+  @Prop({ type: String, mutable: true, reflectToAttr: true }) rootMargin: string;
+  @Prop({ type: String, mutable: true, reflectToAttr: true }) src: string;
+  @Prop({ type: String, mutable: true, reflectToAttr: true }) srcset: string;
+  @Prop({ type: Number, mutable: true, reflectToAttr: true }) w: number = 0;
+  @Prop({ type: Number, mutable: true, reflectToAttr: true }) h: number = 0;
+  @Prop({ type: String, mutable: true, reflectToAttr: true }) alt: string;
+  @Prop({ type: String, mutable: true, reflectToAttr: true }) decoding: 'sync' | 'async' | 'auto';
+  @Prop({ type: String, mutable: true, reflectToAttr: true, attr: 'usemap' }) useMap: string;
+  @Prop({ type: String, mutable: true, reflectToAttr: true }) strategy: 'cache' | 'blob' = 'cache';
 
   root$: Subject<string>;
   rootMargin$: Subject<string>;
-  w$: Subject<number>;
-  h$: Subject<number>;
+  width$: Subject<number>;
+  height$: Subject<number>;
   src$: Subject<string>;
   srcset$: Subject<string>;
 
   @Watch('root') setRoot(_: string) { this.root$.next(_); }
   @Watch('rootMargin') setRootMargin(_: string) { this.rootMargin$.next(_); }
-  @Watch('w') setW(_: number) { this.w$.next(_); }
-  @Watch('h') setH(_: number) { this.h$.next(_); }
+  @Watch('w') setW(_: number) { this.width$.next(_); }
+  @Watch('h') setH(_: number) { this.height$.next(_); }
   @Watch('src') setSrc(_: string) { this.src$.next(_); }
   @Watch('srcset') setSrcset(_: string) { this.srcset$.next(_); }
 
@@ -104,7 +75,7 @@ export class HTMLHyImgElement extends SkateElement {
       switchMap(([root, rootMargin]) =>
         "IntersectionObserver" in window
           ? createItersectionObservable(this.el, {
-            root: document.querySelector(root),
+            root: root ? document.querySelector(root) : undefined,
             rootMargin,
           })
           : of({ isIntersecting: true })
@@ -127,8 +98,8 @@ export class HTMLHyImgElement extends SkateElement {
 
     this.root$ = new BehaviorSubject(this.root);
     this.rootMargin$ = new BehaviorSubject(this.rootMargin);
-    this.w$ = new BehaviorSubject(this.w);
-    this.h$ = new BehaviorSubject(this.h);
+    this.width$ = new BehaviorSubject(this.w);
+    this.height$ = new BehaviorSubject(this.h);
     this.src$ = new BehaviorSubject(this.src);
     this.srcset$ = new BehaviorSubject(this.srcset);
 
@@ -138,7 +109,7 @@ export class HTMLHyImgElement extends SkateElement {
 
     const contentWidth$ = this.getContentWidth();
 
-    combineLatest(contentWidth$, this.w$, this.h$)
+    combineLatest(contentWidth$, this.width$, this.height$)
       // .pipe(subscribeWhen(this.connected$))
       .subscribe(([contentWidth, width, height]) => {
         this.contentWidth = contentWidth;
@@ -258,12 +229,12 @@ export class HTMLHyImgElement extends SkateElement {
         style.width = `${renderWidth}px`;
         style.height = `${renderHeight}px`;
       }
-    } else if (renderHeight !== 0) {
-      style.width = "";
-      style.height = `${renderHeight}px`;
+    // } else if (renderHeight !== 0) {
+    //   style.width = "";
+    //   style.height = `${renderHeight}px`;
     } else {
-      style.width = "";
-      style.height = "";
+      style.width = "100%";
+      style.height = "100%";
     }
 
     return style;
@@ -281,5 +252,21 @@ export class HTMLHyImgElement extends SkateElement {
 
   @Method() loadImage() {
     this.loadImage$.next(true);
+  }
+
+  // TODO: fetch?
+  static get style() {
+    return `
+.sizer {
+  position: relative;
+}
+
+img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+    `;
   }
 }
