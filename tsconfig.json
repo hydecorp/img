@@ -8,12 +8,10 @@
     "moduleResolution": "node",
     "module": "esnext",
     "target": "esnext",
-    "jsx": "react",
-    "jsxFactory": "h",
     "outDir": "dist",
   },
   "include": [
-    "src/components/hy-img/index.tsx",
+    "src/components/hy-img/index.ts",
     "types/*.d.ts",
   ],
 }

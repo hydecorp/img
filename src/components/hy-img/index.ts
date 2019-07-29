@@ -17,7 +17,10 @@
  * @license 
  * @nocompile
  */
-import { h, Component, Prop, Element, Watch, State, Method } from 'pencil-runtime';
+// import { h, Component, Prop, Element, Watch, State, Method } from 'pencil-runtime';
+import { LitElement, html, css, property, customElement } from 'lit-element';
+import { styleMap } from 'lit-html/directives/style-map';
+import { ifDefined } from 'lit-html/directives/if-defined';
 
 import { Subject, BehaviorSubject, Observable, combineLatest, merge, NEVER, of } from "rxjs";
 import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, share, startWith, switchMap, tap } from "rxjs/operators";
@@ -25,56 +28,69 @@ import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map,
 import { isExternal, createResizeObservable, createItersectionObservable, fetchRx } from "./common";
 import { parseSrcset, srcsetFromSrc, Srcset } from './srcset';
 
-@Component({
-  tag: 'hy-img',
-  styleUrl: 'style.css',
-  shadow: true,
-})
-export class HTMLHyImgElement {
-  @Element() el: HTMLElement;
+class RxLitElement extends LitElement {
+  $connected = new Subject<boolean>();
+  connectedCallback() { 
+    super.connectedCallback()
+    this.$connected.next(true) 
+  }
+  disconnectedCallback() { 
+    super.disconnectedCallback()
+    this.$connected.next(false) 
+  }
 
-  @Prop({ type: String, mutable: true, reflectToAttr: true }) root: string;
-  @Prop({ type: String, mutable: true, reflectToAttr: true }) rootMargin: string;
-  @Prop({ type: String, mutable: true, reflectToAttr: true }) src: string;
-  @Prop({ type: String, mutable: true, reflectToAttr: true }) srcset: string;
-  @Prop({ type: Number, mutable: true, reflectToAttr: true }) w: number = 0;
-  @Prop({ type: Number, mutable: true, reflectToAttr: true }) h: number = 0;
-  @Prop({ type: String, mutable: true, reflectToAttr: true }) alt: string;
-  @Prop({ type: String, mutable: true, reflectToAttr: true }) decoding: 'sync' | 'async' | 'auto';
-  @Prop({ type: String, mutable: true, reflectToAttr: true, attr: 'usemap' }) useMap: string;
-  @Prop({ type: String, mutable: true, reflectToAttr: true }) strategy: 'cache' | 'blob' = 'cache';
+  private firstUpdate: boolean
+  $: {}
 
-  root$: Subject<string>;
-  rootMargin$: Subject<string>;
-  width$: Subject<number>;
-  height$: Subject<number>;
-  src$: Subject<string>;
-  srcset$: Subject<string>;
+  firstUpdated() {
+    this.firstUpdate = true
+  }
 
-  @Watch('root') setRoot(_: string) { this.root$.next(_); }
-  @Watch('rootMargin') setRootMargin(_: string) { this.rootMargin$.next(_); }
-  @Watch('w') setW(_: number) { this.width$.next(_); }
-  @Watch('h') setH(_: number) { this.height$.next(_); }
-  @Watch('src') setSrc(_: string) { this.src$.next(_); }
-  @Watch('srcset') setSrcset(_: string) { this.srcset$.next(_); }
+  updated(changedProperties: Map<string, any>) {
+    if (!this.firstUpdate) for (const prop of changedProperties.keys()) {
+      if (prop in this.$) this.$[prop].next(this[prop]);
+    }
+    this.firstUpdate = false
+  }
+}
 
-  connected$: Subject<boolean>;
+@customElement('hy-img')
+export class HTMLHyImgElement extends RxLitElement {
+  @property({ type: String, reflect: true }) root: string;
+  @property({ type: String, reflect: true, attribute: 'root-margin' }) rootMargin: string;
+  @property({ type: String, reflect: true }) src: string;
+  @property({ type: String, reflect: true }) srcset: string;
+  @property({ type: Number, reflect: true }) w: number = 0;
+  @property({ type: Number, reflect: true }) h: number = 0;
+  @property({ type: String, reflect: true }) alt: string;
+  @property({ type: String, reflect: true }) decoding: 'sync' | 'async' | 'auto';
+  @property({ type: String, reflect: true, attribute: 'usemap' }) useMap: string;
+  @property({ type: String, reflect: true }) strategy: 'cache' | 'blob' = 'cache';
 
-  loadImage$: Subject<boolean> = new Subject();
+  @property({ type: Number, reflect: false }) renderWidth: number
+  @property({ type: Number, reflect: false }) renderHeight: number
+  @property({ type: Number, reflect: false }) contentWidth: number
+  @property({ type: String, reflect: false }) url: string = null;
+  @property({ type: String, reflect: false }) visibility = 'hidden';
+
+  $: {
+    root?: Subject<string>,
+    rootMargin?: Subject<string>,
+    w?: Subject<number>,
+    h?: Subject<number>,
+    src?: Subject<string>,
+    srcset?: Subject<string>,
+  } = {}
+
+  $loadImage: Subject<boolean> = new Subject();
   cache: Map<string, string> = new Map();
 
-  @State() renderWidth: number
-  @State() renderHeight: number
-  @State() contentWidth: number
-  @State() url: string = null;
-  @State() visibility = 'hidden';
-
   getIsIntersecting() {
-    return combineLatest(this.root$, this.rootMargin$).pipe(
+    return combineLatest(this.$.root, this.$.rootMargin).pipe(
       // subscribeWhen(this.connected$),
       switchMap(([root, rootMargin]) =>
         "IntersectionObserver" in window
-          ? createItersectionObservable(this.el, {
+          ? createItersectionObservable(this, {
             root: root ? document.querySelector(root) : undefined,
             rootMargin,
           })
@@ -86,30 +102,29 @@ export class HTMLHyImgElement {
 
   getContentWidth() {
     return "ResizeObserver" in window
-      ? createResizeObservable(this.el).pipe(
+      ? createResizeObservable(this).pipe(
         map(x => x.contentRect.width),
-        startWith(this.el.clientWidth),
+        startWith(this.clientWidth),
       )
       : NEVER
   }
 
-  componentWillLoad() {
-    this.connected$ = new BehaviorSubject(true);
+  connectedCallback() {
+    super.connectedCallback()
 
-    this.root$ = new BehaviorSubject(this.root);
-    this.rootMargin$ = new BehaviorSubject(this.rootMargin);
-    this.width$ = new BehaviorSubject(this.w);
-    this.height$ = new BehaviorSubject(this.h);
-    this.src$ = new BehaviorSubject(this.src);
-    this.srcset$ = new BehaviorSubject(this.srcset);
+    this.$.root = new BehaviorSubject(this.root);
+    this.$.rootMargin = new BehaviorSubject(this.rootMargin);
+    this.$.w = new BehaviorSubject(this.w);
+    this.$.h = new BehaviorSubject(this.h);
+    this.$.src = new BehaviorSubject(this.src);
+    this.$.srcset = new BehaviorSubject(this.srcset);
 
-    // HACK
-    // const noscript = this.el.querySelector('noscript');
-    // if (noscript) noscript.parentNode.removeChild(noscript);
+    const noscript = this.querySelector('noscript');
+    if (noscript) noscript.parentNode.removeChild(noscript);
 
-    const contentWidth$ = this.getContentWidth();
+    const $contentWidth = this.getContentWidth();
 
-    combineLatest(contentWidth$, this.width$, this.height$)
+    combineLatest($contentWidth, this.$.w, this.$.h)
       // .pipe(subscribeWhen(this.connected$))
       .subscribe(([contentWidth, width, height]) => {
         this.contentWidth = contentWidth;
@@ -117,37 +132,37 @@ export class HTMLHyImgElement {
         this.renderHeight = height;
       });
 
-    const trigger$ = merge(this.getIsIntersecting(), this.loadImage$).pipe(share());
+    const $trigger = merge(this.getIsIntersecting(), this.$loadImage).pipe(share());
 
-    trigger$
+    $trigger
       .pipe(filter(x => !!x), distinctUntilChanged())
-      .subscribe(() => this.triggered(trigger$, contentWidth$));
+      .subscribe(() => this.triggered($trigger, $contentWidth));
   }
 
   // TODO: rename
-  triggered(trigger$: Observable<boolean>, contentWidth$: Observable<number>) {
+  triggered($trigger: Observable<boolean>, contentWidth$: Observable<number>) {
     // this.loading = true;
 
-    const srcset$ = combineLatest(this.src$, this.srcset$).pipe(
+    const $srcset = combineLatest(this.$.src, this.$.srcset).pipe(
       // subscribeWhen(this.connected$),
       filter(([a, b]) => a != null || b != null),
       distinctUntilChanged(([p1, p2], [q1, q2]) => p1 === q1 && p2 === q2),
       map(([src, srcset]) => (srcset ? parseSrcset(srcset) : srcsetFromSrc(src))),
     );
 
-    const url$ = combineLatest(contentWidth$, srcset$).pipe(
+    const $url = combineLatest(contentWidth$, $srcset).pipe(
       map(args => this.selectSrcsetURL(...args)),
       distinctUntilKeyChanged("href"),
     );
 
-    const trigger2$ = trigger$.pipe(
+    const $trigger2 = $trigger.pipe(
       // distinctUntilChanged(), // ???
       startWith(true),
     );
 
-    combineLatest(url$, trigger2$).pipe(
+    combineLatest($url, $trigger2).pipe(
       switchMap(args => this.fetchImage(...args)),
-      catchError(() => url$),
+      catchError(() => $url),
       // tap(() => (this.loading = false)),
     )
       .subscribe(url => {
@@ -197,19 +212,14 @@ export class HTMLHyImgElement {
   }
 
   render() {
-    return [
-      <div class="sizer" style={this.calcSizerStyle()}>
-        <slot name="loading" />
-        {this.url ? <img
-          src={this.url}
-          style={this.calcImageStyle()}
-          alt={this.alt}
-          decoding={this.decoding}
-          useMap={this.useMap}
-          onLoad={() => (this.visibility = 'visible')}
-        /> : null}
-      </div>,
-    ];
+    return html`
+      <div class="sizer" style=${styleMap(this.calcSizerStyle())}>
+        ${!this.url || this.visibility === 'hidden' ? html`
+        <slot name="loading" />` : null} ${this.url ? html`
+        <img src=${this.url} style=${styleMap(this.calcImageStyle())} alt=${ifDefined(this.alt)} decoding=${ifDefined(this.decoding)}
+          useMap=${ifDefined(this.useMap)} @load=${()=> (this.visibility = 'visible')} />` : null}
+      </div>
+    `;
   }
 
   calcImageStyle(): { [key: string]: string } {
@@ -229,9 +239,9 @@ export class HTMLHyImgElement {
         style.width = `${renderWidth}px`;
         style.height = `${renderHeight}px`;
       }
-    // } else if (renderHeight !== 0) {
-    //   style.width = "";
-    //   style.height = `${renderHeight}px`;
+      // } else if (renderHeight !== 0) {
+      //   style.width = "";
+      //   style.height = `${renderHeight}px`;
     } else {
       style.width = "100%";
       style.height = "100%";
@@ -240,8 +250,8 @@ export class HTMLHyImgElement {
     return style;
   }
 
-  componentDidUnload() {
-    this.connected$.next(false);
+  disconnectedCallback() {
+    super.disconnectedCallback();
 
     if (this.cache) {
       this.cache.forEach(objURL => {
@@ -250,23 +260,20 @@ export class HTMLHyImgElement {
     }
   }
 
-  @Method() loadImage() {
-    this.loadImage$.next(true);
+  @property() loadImage() {
+    this.$loadImage.next(true);
   }
 
-  // TODO: fetch?
-  static get style() {
-    return `
-.sizer {
-  position: relative;
-}
+  static styles = css`
+    .sizer {
+      position: relative;
+    }
 
-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-}
-    `;
-  }
+    img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+    }
+  `;
 }
