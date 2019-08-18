@@ -23,7 +23,7 @@ import { styleMap } from 'lit-html/directives/style-map';
 import { ifDefined } from 'lit-html/directives/if-defined';
 
 import { Subject, BehaviorSubject, Observable, combineLatest, merge, NEVER, of } from "rxjs";
-import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, share, startWith, switchMap, tap } from "rxjs/operators";
+import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mapTo, share, startWith, switchMap, tap } from "rxjs/operators";
 
 import { isExternal, createResizeObservable, createItersectionObservable, fetchRx } from "./common";
 import { parseSrcset, srcsetFromSrc, Srcset } from './srcset';
@@ -67,11 +67,12 @@ export class HTMLHyImgElement extends RxLitElement {
   @property({ type: String, reflect: true, attribute: 'usemap' }) useMap: string;
   @property({ type: String, reflect: true }) strategy: 'cache' | 'blob' = 'cache';
 
-  @property({ type: Number, reflect: false }) renderWidth: number
-  @property({ type: Number, reflect: false }) renderHeight: number
-  @property({ type: Number, reflect: false }) contentWidth: number
-  @property({ type: String, reflect: false }) url: string = null;
-  @property({ type: String, reflect: false }) visibility = 'hidden';
+  // Render-triggering state
+  @property() renderWidth: number
+  @property() renderHeight: number
+  @property() contentWidth: number
+  @property() url: string = null;
+  @property() visibility = 'hidden';
 
   $: {
     root?: Subject<string>,
@@ -162,12 +163,12 @@ export class HTMLHyImgElement extends RxLitElement {
 
     combineLatest($url, $trigger2).pipe(
       switchMap(args => this.fetchImage(...args)),
-      catchError(() => $url),
+      catchError((e) => (console.error(e), $url)),
       // tap(() => (this.loading = false)),
-    )
-      .subscribe(url => {
+      tap((url) => {
         this.url = url as string;
-      });
+      })
+    ).subscribe();
   }
 
   selectSrcsetURL(width: number, srcsetObj: Srcset) {
@@ -176,17 +177,29 @@ export class HTMLHyImgElement extends RxLitElement {
     return new URL(selection, window.location.href)
   }
 
-  cacheStrategy(fetch$: Observable<Response>) {
+  cacheStrategy(fetch$: Observable<Response>, url: URL) {
     switch (this.strategy) {
       case 'blob': {
         return fetch$.pipe(
-          switchMap(x => x.blob()),
+          switchMap(re => re.blob()),
           map(blob => URL.createObjectURL(blob))
         );
       }
       case 'cache':
       default: {
-        return fetch$.pipe(map(x => x.url));
+        return fetch$.pipe(mapTo(url.href));
+      }
+    }
+  }
+
+  revokeStrategy(url: string) {
+    switch (this.strategy) {
+      case 'blob': {
+        return URL.revokeObjectURL(url);
+      }
+      case 'cache':
+      default: {
+        return
       }
     }
   }
@@ -201,7 +214,7 @@ export class HTMLHyImgElement extends RxLitElement {
         headers: { Accept: "image/*" },
         mode: isExternal(url) ? 'cors' : undefined,
       });
-      return this.cacheStrategy(fetch$).pipe(
+      return this.cacheStrategy(fetch$, url).pipe(
         tap(objectURL => cache.set(href, objectURL))
       );
     } else if (cache.has(href)) {
@@ -255,7 +268,7 @@ export class HTMLHyImgElement extends RxLitElement {
 
     if (this.cache) {
       this.cache.forEach(objURL => {
-        URL.revokeObjectURL(objURL);
+        this.revokeStrategy(objURL);
       });
     }
   }
