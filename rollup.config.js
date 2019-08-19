@@ -6,7 +6,7 @@ import typescript from 'rollup-plugin-typescript';
 // const production = !process.env.ROLLUP_WATCH;
 
 export default {
-    input: 'src/components/hy-img/index.ts',
+    input: 'src/index.ts',
     output: {
         file: `docs/assets/hy-img.js`,
         format: 'es',
