@@ -1,8 +1,10 @@
 title: hy-img
 email: mail@qwtel.com
 
-baseurl: /img
+description: >
+  TODO
 url: https://hydecorp.github.io
+baseurl: /img
 
 author:
   email: mail@qwtel.com

@@ -1,7 +1,5 @@
 # hy-img
 
-[![npm version](https://badge.fury.io/js/hy-img.svg)](https://badge.fury.io/js/hy-img)
-
 **hy-img** is a image tag drop-in replacement that lazy-loads TODO
 
 <!--more-->
