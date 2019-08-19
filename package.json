@@ -2,11 +2,15 @@
   "name": "@hydecorp/img",
   "version": "1.0.0-alpha",
   "description": "",
+  "main": "lib/index.js",
   "module": "lib/index.js",
   "files": [
     "lib",
     "src"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "clean": "rm -rf lib",
     "test": "exit 0",
@@ -37,10 +41,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/qwtel/hy-img.git"
+    "url": "git+https://github.com/hydecorp/img.git"
   },
   "bugs": {
-    "url": "https://github.com/qwtel/hy-img/issues"
+    "url": "https://github.com/hydecorp/img/issues"
   },
-  "homepage": "https://qwtel.com/hy-img/"
+  "homepage": "https://hydecorp.github.io/img/",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib"
+  }
 }
