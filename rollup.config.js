@@ -8,7 +8,7 @@ import typescript from 'rollup-plugin-typescript';
 export default {
     input: 'src/components/hy-img/index.ts',
     output: {
-        file: `assets/hy-img.js`,
+        file: `docs/assets/hy-img.js`,
         format: 'es',
         sourcemap: true
     },

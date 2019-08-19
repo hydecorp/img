@@ -1,15 +1,15 @@
 title: hy-img
 email: mail@qwtel.com
 
-baseurl: /hy-img
-url: https://qwtel.com
+baseurl: /img
+url: https://hydecorp.github.io
 
 author:
   email: mail@qwtel.com
   social:
-    github: https://github.com/qwtel/hy-img
-    npm: https://www.npmjs.com/package/hy-img
-    download: https://github.com/qwtel/hy-img/releases
+    github: https://github.com/hydecorp/img
+    npm: https://www.npmjs.com/package/@hydecorp/img
+    download: https://github.com/hydecorp/img/releases
 
 logo: /assets/icons/icon.svg
 
@@ -48,27 +48,10 @@ exclude:
 include:
   - LICENSE.md
 
-remote_theme: qwtel/hydejack
+remote_theme: hydecorp/hydejack
 
 hydejack:
   no_mark_external: true
-
-# defaults:
-#   - scope:
-#       path: doc/options.md
-#     values:
-#       menu: true
-#       order: 1
-#   - scope:
-#       path: doc/methods.md
-#     values:
-#       menu: true
-#       order: 2
-#   - scope:
-#       path: doc/events.md
-#     values:
-#       menu: true
-#       order: 3
 
 titles_from_headings:
   strip_title: true

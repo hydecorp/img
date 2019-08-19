@@ -1,0 +1,7 @@
+# Jekyll
+_site
+_drafts
+.sass-cache
+Gemfile*
+/.bundle/
+/vendor/
