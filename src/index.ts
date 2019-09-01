@@ -165,11 +165,9 @@ export class HTMLHyImgElement extends RxLitElement {
 
     combineLatest($url, $trigger2).pipe(
       switchMap(args => this.fetchImage(...args)),
-      catchError((e) => (console.error(e), $url)),
+      catchError((e) => { if (process.env.DEBUG) console.error(e); return $url }),
       // tap(() => (this.loading = false)),
-      tap((url) => {
-        this.url = url as string;
-      })
+      tap((url) => (this.url = url as string)),
     ).subscribe();
   }
 
@@ -229,10 +227,18 @@ export class HTMLHyImgElement extends RxLitElement {
   render() {
     return html`
       <div class="sizer" style=${styleMap(this.calcSizerStyle())}>
-        ${!this.url || this.visibility === 'hidden' ? html`
-        <slot name="loading" />` : null} ${this.url ? html`
-        <img src=${this.url} style=${styleMap(this.calcImageStyle())} alt=${ifDefined(this.alt)} decoding=${ifDefined(this.decoding)}
-          useMap=${ifDefined(this.useMap)} @load=${()=> (this.visibility = 'visible')} />` : null}
+        ${!this.url || this.visibility === 'hidden'
+          ? html`<slot name="loading" />`
+          : null}
+        ${this.url
+          ? html`<img
+            src=${this.url}
+            style=${styleMap(this.calcImageStyle())}
+            alt=${ifDefined(this.alt)}
+            decoding=${ifDefined(this.decoding)}
+            useMap=${ifDefined(this.useMap)}
+            @load=${()=> (this.visibility = 'visible')} />`
+          : null}
       </div>
     `;
   }
