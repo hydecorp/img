@@ -138,6 +138,8 @@ export class HTMLHyImgElement extends RxLitElement {
     $trigger
       .pipe(filter(x => !!x), distinctUntilChanged())
       .subscribe(() => this.triggered($trigger, $contentWidth));
+
+    this.fireEvent('init');
   }
 
   // TODO: rename
@@ -271,6 +273,11 @@ export class HTMLHyImgElement extends RxLitElement {
         this.revokeStrategy(objURL);
       });
     }
+  }
+
+  fireEvent<T>(name: string, eventInitDict?: CustomEventInit<T>) {
+    this.dispatchEvent(new CustomEvent(name, eventInitDict));
+    this.dispatchEvent(new CustomEvent(`hy-img-${name}`, eventInitDict));
   }
 
   @property() loadImage() {
