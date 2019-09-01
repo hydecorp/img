@@ -26,7 +26,7 @@ export function createResizeObservable(el: HTMLElement): Observable<ResizeObserv
   });
 }
 
-export function createItersectionObservable(el: HTMLElement, options?: IntersectionObserverInit): Observable<IntersectionObserverEntry> {
+export function createIntersectionObservable(el: HTMLElement, options?: IntersectionObserverInit): Observable<IntersectionObserverEntry> {
   return Observable.create((obs: PartialObserver<IntersectionObserverEntry>) => {
     const observer = new IntersectionObserver(xs => xs.forEach(x => obs.next(x)), options);
     observer.observe(el);

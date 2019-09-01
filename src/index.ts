@@ -25,7 +25,7 @@ import { ifDefined } from 'lit-html/directives/if-defined';
 import { Subject, BehaviorSubject, Observable, combineLatest, merge, NEVER, of } from "rxjs";
 import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mapTo, share, startWith, switchMap, tap } from "rxjs/operators";
 
-import { isExternal, createResizeObservable, createItersectionObservable, fetchRx } from "./common";
+import { isExternal, createResizeObservable, createIntersectionObservable, fetchRx } from "./common";
 import { parseSrcset, srcsetFromSrc, Srcset } from './srcset';
 
 class RxLitElement extends LitElement {
@@ -91,7 +91,7 @@ export class HTMLHyImgElement extends RxLitElement {
       // subscribeWhen(this.connected$),
       switchMap(([root, rootMargin]) =>
         "IntersectionObserver" in window
-          ? createItersectionObservable(this, {
+          ? createIntersectionObservable(this, {
             root: root ? document.querySelector(root) : undefined,
             rootMargin,
           })
