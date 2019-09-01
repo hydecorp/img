@@ -31,26 +31,26 @@ import { parseSrcset, srcsetFromSrc, Srcset } from './srcset';
 class RxLitElement extends LitElement {
   $connected = new Subject<boolean>();
   connectedCallback() { 
-    super.connectedCallback()
-    this.$connected.next(true) 
+    super.connectedCallback();
+    this.$connected.next(true);
   }
   disconnectedCallback() { 
-    super.disconnectedCallback()
-    this.$connected.next(false) 
+    super.disconnectedCallback();
+    this.$connected.next(false);
   }
 
   private firstUpdate: boolean
   $: {}
 
   firstUpdated() {
-    this.firstUpdate = true
+    this.firstUpdate = true;
   }
 
   updated(changedProperties: Map<string, any>) {
     if (!this.firstUpdate) for (const prop of changedProperties.keys()) {
       if (prop in this.$) this.$[prop].next(this[prop]);
     }
-    this.firstUpdate = false
+    this.firstUpdate = false;
   }
 }
 
@@ -68,9 +68,9 @@ export class HTMLHyImgElement extends RxLitElement {
   @property({ type: String, reflect: true }) strategy: 'cache' | 'blob' = 'cache';
 
   // Render-triggering state
-  @property() renderWidth: number
-  @property() renderHeight: number
-  @property() contentWidth: number
+  @property() renderWidth: number;
+  @property() renderHeight: number;
+  @property() contentWidth: number;
   @property() url: string = null;
   @property() visibility = 'hidden';
 
@@ -81,7 +81,7 @@ export class HTMLHyImgElement extends RxLitElement {
     h?: Subject<number>,
     src?: Subject<string>,
     srcset?: Subject<string>,
-  } = {}
+  } = {};
 
   $loadImage: Subject<boolean> = new Subject();
   cache: Map<string, string> = new Map();
@@ -97,7 +97,7 @@ export class HTMLHyImgElement extends RxLitElement {
           })
           : of({ isIntersecting: true })
       ),
-      map(({ isIntersecting }) => isIntersecting)
+      map(({ isIntersecting }) => isIntersecting),
     );
   }
 
@@ -107,11 +107,11 @@ export class HTMLHyImgElement extends RxLitElement {
         map(x => x.contentRect.width),
         startWith(this.clientWidth),
       )
-      : NEVER
+      : NEVER;
   }
 
   connectedCallback() {
-    super.connectedCallback()
+    super.connectedCallback();
 
     this.$.root = new BehaviorSubject(this.root);
     this.$.rootMargin = new BehaviorSubject(this.rootMargin);
@@ -174,7 +174,7 @@ export class HTMLHyImgElement extends RxLitElement {
   selectSrcsetURL(width: number, srcsetObj: Srcset) {
     const dpr = window.devicePixelRatio || 1;
     const selection = srcsetObj.select(width || window.screen.width, dpr);
-    return new URL(selection, window.location.href)
+    return new URL(selection, window.location.href);
   }
 
   cacheStrategy(fetch$: Observable<Response>, url: URL) {
@@ -199,7 +199,7 @@ export class HTMLHyImgElement extends RxLitElement {
       }
       case 'cache':
       default: {
-        return
+        return;
       }
     }
   }
@@ -215,7 +215,7 @@ export class HTMLHyImgElement extends RxLitElement {
         mode: isExternal(url) ? 'cors' : undefined,
       });
       return this.cacheStrategy(fetch$, url).pipe(
-        tap(objectURL => cache.set(href, objectURL))
+        tap(objectURL => cache.set(href, objectURL)),
       );
     } else if (cache.has(href)) {
       return of(cache.get(href));
